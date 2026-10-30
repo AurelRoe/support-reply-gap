@@ -5,6 +5,8 @@ requires-python = ">=3.11"
 dependencies = [
     "google-play-scraper",
     "pandas",
+    "psycopg[binary]",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]
@@ -19,3 +21,6 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.pytest.ini_options]
+markers = ["db: requires a running Postgres"]

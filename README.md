@@ -35,8 +35,9 @@ type gets more or fewer replies.
 - **CI:** GitHub Actions runs `ruff` and `pytest` on every pull request and
   push to `main`. Tests that need a live database are skipped there.
 - **API:** a FastAPI app with one `/health` endpoint, containerised and
-  deployed at <!-- TODO: public URL -->. It is a stub; the real `/classify`
-  endpoint replaces it in Phase D.
+  deployed on Render at
+  [support-reply-gap.onrender.com/health](https://support-reply-gap.onrender.com/health).
+  It is a stub; the real `/classify` endpoint replaces it in Phase D.
 
 ## Running it locally
 

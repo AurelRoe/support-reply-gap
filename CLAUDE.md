@@ -2,12 +2,19 @@
 
 ## What this project is
 
-NLP analysis of Google Play reviews for German fintech apps (N26, Trade Republic,
-Revolut, Scalable Capital). Each review is classified into complaint topics and
-joined to whether and how fast the company replied. The output is a mismatch
-analysis: which complaint types get answered versus which do not.
+NLP analysis of Google Play reviews for German fintech apps. Each review is
+classified into complaint topics and joined to whether and how fast the company
+replied. The output is a mismatch analysis: which complaint types get answered
+versus which do not.
 
-Portfolio project for ML/AI engineering job applications. One week of work.
+Three apps, all in **one** product category — neobanks *or* brokers, not a mix,
+because complaint base rates differ between the two and a mixed set confounds
+the dependent variable. The specific apps are chosen in stage B1 by measuring
+reply rates, not by assumption. Do not assume or hardcode a set before then.
+
+Portfolio project for ML/AI engineering job applications. The working plan and
+stage sequence is `docs/build-order.md` — read it before proposing structural
+work.
 
 ## The deliverable
 
@@ -17,10 +24,10 @@ probably out of scope.
 
 ## Hard rules
 
-- **No causal claims.** Companies choose who to reply to. Findings are
-  descriptive only: "complaint type X receives replies at rate Y with median
-  latency Z". Never "company A ignores X". This applies to code comments,
-  variable names, generated reports and the README.
+- **No causal claims.** Companies choose who to reply to, and that choice is
+  unobserved. Findings are descriptive only: "complaint type X receives replies
+  at rate Y with median latency Z". Never "company A ignores X". This applies to
+  code comments, variable names, generated reports and the README.
 - **Reviews are German.** Never default to English tokenisers, English stopword
   lists, or `*-base-uncased` English checkpoints. Use German or multilingual
   models (e.g. `deepset/gbert-base`). Flag it if you are unsure a component
@@ -28,14 +35,19 @@ probably out of scope.
 - **The gold set is human-labelled only.** Never write, modify, extend or
   "fill in" labels in `data/gold/`. Never generate synthetic labelled examples.
   If the gold set looks too small, say so — do not expand it.
-- **Never write a model and the test that judges it in the same step.** The
-  eval harness and metrics are defined against the frozen gold set first.
+- **Never write a model and the test that judges it in the same step.** The eval
+  harness and metrics are defined against the frozen gold set first. The stage
+  order enforces this: the harness (C3) is built before the LLM path (C5), so
+  every model is measured by a yardstick that existed before it did.
 - **Report null results honestly.** If a model path performs badly, or the
   reply-gap finding is weak, that goes in the README as-is.
 
 ## Label taxonomy
 
 Multi-label: a review can carry several labels. `no_complaint` is exclusive.
+This decision is **settled** — it is already baked into the schema below, the
+metric (macro-F1 over multi-label) and the router's confidence logic. Do not
+reopen it; changing it means relabelling the gold set.
 
 | Label | Covers | Does NOT cover |
 |---|---|---|
@@ -51,47 +63,76 @@ Multi-label: a review can carry several labels. `no_complaint` is exclusive.
 Notes:
 - `support_experience` is a meta-label and co-occurs often. That co-occurrence
   is the core of the analysis — do not collapse it into other labels.
-- With ~400 labelled reviews some classes will have fewer than 20 examples.
+- With ~300 labelled reviews several classes will have fewer than 20 examples.
   Report per-class support alongside F1 and flag any class too small to judge.
+  Do not quietly merge small classes to make the numbers look better.
+- Human self-agreement on a doubly-labelled subset is the accuracy ceiling.
+  Report model scores against that ceiling, not against 1.0.
 
 ## Repo layout
 
 ```
 data/raw/        scraped JSON, gitignored
 data/gold/       hand-labelled set, COMMITTED — the asset
-src/reply_gap/
+notebooks/       exploration only; never imported by src/
+scripts/         standalone utilities (probe_apps.py)
+src/support_reply_gap/
   ingest/        scraper, Postgres loader, data quality checks
   labeling/      label schema, labelling CLI
-  models/        baseline.py (tfidf+logreg), transformer.py, llm.py
+  models/        baseline.py (tfidf+logreg), llm.py, router.py
   eval/          harness, metrics, cost and latency measurement
   analysis/      the reply-gap join
+  api/           FastAPI service
 tests/
 reports/         generated eval table, committed
+docs/            build-order.md
 ```
+
+Dependencies point one direction: `notebooks/` imports from `src/`, never the
+reverse. If a notebook grows a function another notebook needs, it moves to
+`src/`.
 
 ## Stack and conventions
 
-- Python 3.11+, venv at `.venv`, pip
-- Postgres via Docker Compose
+- Python 3.11+, venv at `.venv`, pip, package installed editable (`pip install -e`)
+- Postgres via Docker Compose, host port 5433
+- Plain SQL via `psycopg`. No ORM — I know SQL well, an ORM is a layer between
+  me and something I can already read.
 - Ruff for linting and formatting
-- pytest for tests
+- pytest for tests; tests needing a live database are marked `@pytest.mark.db`
+  so CI can run `pytest -m "not db"`
 - Type hints on public functions; no heavy abstraction layers
 - Keep modules small and independently runnable
 
 ## Scope
 
-**In:** ingestion + DQ checks, gold set, three model paths, eval harness,
-reply-gap analysis, README, Docker Compose (Postgres + app), GitHub Actions.
+**In:** ingestion + DQ checks, gold set, two model paths (TF-IDF baseline and
+LLM with structured output), confidence router between them, eval harness wired
+into CI as a gate, reply-gap analysis, FastAPI service, Docker Compose, GitHub
+Actions, cloud deployment, README.
+
+Two model paths, not three. Cheap plus expensive with a measured trade-off is
+the entire comparison story, and the router needs exactly two tiers. A
+fine-tuned German transformer is a *possible later addition* if time appears —
+it would slot in as another eval row without disturbing anything, since the
+harness already exists. Do not build it unasked.
 
 **Deferred — do not build unless I explicitly ask:** pgvector retrieval,
-Streamlit dashboard, Langfuse tracing, cloud deployment, the confidence router.
+Streamlit dashboard, Langfuse tracing.
+
+Note: Compose uses the `pgvector/pgvector:pg16` image. That costs nothing over
+plain Postgres and keeps the option open — it is **not** a signal that retrieval
+is in scope. Do not swap the image for plain Postgres either; the volume is
+built on it.
 
 ## Working with me
 
 - I am new to Git, CI and deployment. Explain what a command does before
   suggesting I run it, and tell me when something is irreversible.
 - Use plan mode for anything structural. Show the plan before writing files.
-- Prefer small, reviewable changes over large ones. I need to be able to
-  explain every file in this repo in a job interview.
-- When you write something non-obvious, add a one-line comment saying why,
-  not what.
+- Prefer small, reviewable changes over large ones. I need to be able to explain
+  every file in this repo in a job interview — if a suggestion is something I
+  could not defend, say so rather than writing it.
+- When you write something non-obvious, add a one-line comment saying why, not
+  what.
+- macOS terms and menu paths in English.

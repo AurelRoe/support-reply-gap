@@ -32,7 +32,7 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       trivial test. Run `pytest -m "not db"` so DB tests don't break it.
       *Done:* a green check on a pull request.
 
-- [ ] **A4. Walking skeleton deploy.** FastAPI with one `/health` endpoint,
+- [x] **A4. Walking skeleton deploy.** FastAPI with one `/health` endpoint,
       containerised, deployed. No models, no database.
       Deploying a stub is a different and much easier problem than deploying the
       finished system. Separating them is worth a lot given the deployment gap

@@ -18,17 +18,17 @@ Ordering principles, since several stages sit earlier than feels natural:
 
 No data, no models. A repo that runs, tests, and deploys *something*.
 
-- [ ] **A1. Repo and package layout.** `src/support_reply_gap/` as an
+- [x] **A1. Repo and package layout.** `src/support_reply_gap/` as an
       installable package via `pyproject.toml`, plus `tests/`, `notebooks/`,
       `scripts/`.
       *Done:* `import support_reply_gap` works from a notebook and a test.
 
-- [ ] **A2. Postgres via Docker Compose.** One service, named volume,
+- [x] **A2. Postgres via Docker Compose.** One service, named volume,
       healthcheck. Image `pgvector/pgvector:pg16` — costs nothing over plain
       Postgres and leaves the option open. Host port 5433 to avoid collisions.
       *Done:* `docker compose up -d`, then `select 1` from Python.
 
-- [ ] **A3. CI that does almost nothing.** GitHub Actions: install, `ruff`, one
+- [x] **A3. CI that does almost nothing.** GitHub Actions: install, `ruff`, one
       trivial test. Run `pytest -m "not db"` so DB tests don't break it.
       *Done:* a green check on a pull request.
 

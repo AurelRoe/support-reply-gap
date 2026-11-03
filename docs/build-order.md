@@ -43,7 +43,7 @@ No data, no models. A repo that runs, tests, and deploys *something*.
 
 ## Phase B — Data
 
-- [ ] **B1. Lock the app set.** Run `scripts/probe_apps.py`. Choose on reply
+- [x] **B1. Lock the app set.** Run `scripts/probe_apps.py`. Choose on reply
       rate for 1–2★ reviews, volume, German share, reply text diversity.
       **Three apps**, all in one product category (neobanks *or* brokers) so
       complaint base rates are comparable.

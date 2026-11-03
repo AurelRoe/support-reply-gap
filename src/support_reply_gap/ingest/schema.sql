@@ -41,3 +41,18 @@ create index if not exists reviews_app_posted_idx on reviews (app_key, posted_at
 
 -- Reply rates are computed per app per score band.
 create index if not exists reviews_app_score_idx on reviews (app_key, score);
+
+-- Latency is only meaningful when the reply follows the review. A reply
+-- timestamped before its review means the user edited the review afterwards,
+-- so the original post time is unknown and latency is not computable.
+drop view if exists reviews_analysis;
+create view reviews_analysis as
+select
+    r.*,
+    (r.replied_at is not null and r.replied_at < r.posted_at) as likely_edited,
+    case
+        when r.replied_at is null then null
+        when r.replied_at < r.posted_at then null
+        else extract(epoch from (r.replied_at - r.posted_at)) / 3600.0
+    end as reply_latency_hours
+from reviews r;

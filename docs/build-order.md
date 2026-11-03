@@ -43,35 +43,38 @@ No data, no models. A repo that runs, tests, and deploys *something*.
 
 ## Phase B — Data
 
-- [x] **B1. Lock the app set.** Run `scripts/probe_apps.py`. Choose on reply
-      rate for 1–2★ reviews, volume, German share, reply text diversity.
+- [x] **B1. Lock the app set.** Screened candidates with
+      `scripts/probe_apps.py` and chose on reply rate for 1–2★ reviews, volume,
+      German share and reply text diversity.
       **Three apps**, all in one product category (neobanks *or* brokers) so
       complaint base rates are comparable.
       *Done:* three apps chosen, probe numbers and rejected candidates written
       into the README as justification.
 
-- [ ] **B2. Ingest to Postgres.** `reviews` (review_id PK, app, author, score,
+- [x] **B2. Ingest to Postgres.** `reviews` (review_id PK, app, author, score,
       content, at, reply_content, replied_at, scraped_at) and `apps`. Upsert on
       review_id so re-runs are safe.
       DQ checks as assertions: no null ids, no duplicates, scores 1–5,
-      `replied_at >= at`, no future dates, per-app row counts in range.
+      no future dates, per-app row counts in range. `replied_at >= at` is a
+      warning rather than an assertion, because users edit reviews after a
+      reply (2.4% of rows, see README).
       *Done:* one command populates the DB from empty, idempotently, checks
       passing, a few thousand reviews per app.
 
 - [ ] **B3. Explore (notebook).** Length and score distributions, language mix,
       reply rate by score and over time, duplicates and spam, share of
       contentless reviews.
-      *Done:* you can describe the data in five sentences and know what cleaning
+      *Done:* I can describe the data in five sentences and know what cleaning
       is needed.
 
-- [ ] **B4. Define the taxonomy.** Read 200–300 reviews, refine the five
-      starting categories. Expect them to be wrong.
-      **Decide before labelling: single-label or multi-label.** Reviews
-      routinely complain about two things at once. This changes the metric, the
-      prompt schema, and the router's confidence logic. Changing your mind later
-      means relabelling. Multi-label is more honest here and slightly more work
+- [ ] **B4. Define the taxonomy.** Read 200–300 reviews and refine the five
+      starting categories, which will probably turn out wrong.
+      **Decided before labelling: multi-label.** Reviews routinely complain
+      about two things at once. The choice shapes the metric, the prompt schema
+      and the router's confidence logic, and reversing it later would mean
+      relabelling. Multi-label is more honest here and slightly more work
       everywhere.
-      Add an explicit `other` / `no complaint` class, or positive reviews get
+      An explicit `no_complaint` class keeps positive reviews from being
       forced into complaint categories.
       *Done:* written taxonomy, one paragraph and 2–3 real examples per class,
       committed.
@@ -79,11 +82,12 @@ No data, no models. A repo that runs, tests, and deploys *something*.
 - [ ] **B5. Hand-label the gold set.** ~300 reviews, stratified across apps and
       star ratings — not random, which over-samples 1★/5★ noise and
       under-samples rare classes.
-      Label ~50 of them **twice**, days apart, and measure self-agreement. That
-      is your realistic ceiling: at 85% self-agreement, a model at 0.85 macro-F1
-      is at human level and chasing 0.95 is chasing noise. Report the ceiling —
-      it is the most distinctive thing in the project.
-      Hold out a test split now and don't look at it until the end.
+      ~50 of them get labelled **twice**, days apart, to measure
+      self-agreement. That is the realistic ceiling: at 85% self-agreement, a
+      model at 0.85 macro-F1 is at human level and chasing 0.95 is chasing
+      noise. The ceiling gets reported; it is the most distinctive thing in the
+      project.
+      The test split is held out at this point and stays unseen until the end.
       *Done:* labelled CSV committed, train/val/test split, self-agreement
       recorded.
 
@@ -96,7 +100,7 @@ between them. That is the whole comparison story, and the router needs exactly
 two tiers.
 
 - [ ] **C1. Baseline: TF-IDF + logistic regression.** German stopwords;
-      consider character n-grams for compound words.
+      character n-grams worth trying for compound words.
       *Done:* a macro-F1 on validation. This is the bar.
 
 - [ ] **C2. First end-to-end answer** ← *milestone*
@@ -154,9 +158,10 @@ exists to make them credible.
   rates across all candidates, widen to incumbent banks (DKB, ING, Commerzbank)
   before committing to anything downstream.
 - **Boilerplate replies** make reply *text* useless as a signal; reply timing
-  still works. Know which you have before designing around reply content.
-- **Public repo hygiene:** commit code and aggregated tables. Think twice about
-  a raw dump of review text with usernames attached.
+  still works. Which of the two applies needs checking before anything is
+  designed around reply content.
+- **Public repo hygiene:** code and aggregated tables get committed. A raw dump
+  of review text with usernames attached does not.
 - **Scope:** Phase C carries the weight. If something has to go, it goes from
   Phase D — and if time appears instead, a fine-tuned German transformer
   (`deepset/gbert-base`) slots in as another eval row without disturbing

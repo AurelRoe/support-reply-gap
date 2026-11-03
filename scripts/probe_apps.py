@@ -26,9 +26,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
-from google_play_scraper import Sort
+from google_play_scraper import Sort, reviews
 from google_play_scraper import app as gp_app
-from google_play_scraper import reviews
 
 # Candidates to screen, grouped by product category. Both groups are screened,
 # then ONE group is chosen — complaint base rates differ between neobanks and
@@ -91,7 +90,7 @@ def verify_package(package: str) -> tuple[str | None, int | None]:
     """
     try:
         meta = gp_app(package, lang=LANG, country=COUNTRY)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print(f"    lookup failed: {type(exc).__name__}: {exc}")
         return None, None
     return meta.get("title"), meta.get("reviews")
@@ -114,7 +113,7 @@ def probe(label: str, package: str, group: str) -> tuple[dict, pd.DataFrame]:
             count=SAMPLE_SIZE,
             sort=Sort.NEWEST,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print(f"    review fetch failed: {type(exc).__name__}: {exc}")
         return {"app": label, "group": group, "status": "fetch error"}, pd.DataFrame()
 

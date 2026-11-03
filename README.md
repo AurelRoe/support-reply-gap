@@ -7,8 +7,9 @@ and how fast? This repo classifies Google Play reviews into complaint
 categories and joins them to reply data. The result is a descriptive table:
 reply rate and median reply latency per complaint type.
 
-**Status:** Phase A (skeleton) is done. Next up is Phase B: choosing the
-three apps and ingesting reviews. There are no data, models or findings yet.
+**Status:** Phase A (skeleton) is done. Phase B is under way: the three apps
+are chosen (see [App selection](#app-selection-stage-b1)); ingestion is next.
+There are no models or findings yet.
 The full plan is in [docs/build-order.md](docs/build-order.md).
 
 ## Approach
@@ -27,6 +28,34 @@ The full plan is in [docs/build-order.md](docs/build-order.md).
 Findings will be descriptive only. Companies choose which reviews to answer
 and that choice is not observed, so the data cannot show *why* a complaint
 type gets more or fewer replies.
+
+## App selection (stage B1)
+
+Probed on 2026-11-03 with [scripts/probe_apps.py](scripts/probe_apps.py):
+the newest 2,000 reviews per app from the German Play Store. Reply rates leave
+out reviews younger than 14 days, which may not have been answered yet.
+
+| App | Reviews/day | Reply rate | Reply rate, 1–2★ | Median reply time | German reviews\* |
+|---|---:|---:|---:|---:|---:|
+| N26 | 4.6 | 97.9% | 99.7% | 16.5 h | 68% |
+| Revolut | 17.4 | 12.5% | 72.3% | 0.4 h | 43% |
+| C24 Bank | 3.3 | 14.9% | 41.9% | 75.4 h | 70% |
+| bunq | 1.4 | 99.7% | 99.9% | 58.6 h | 62% |
+| Vivid Money | 1.1 | 32.6% | 48.2% | 59.8 h | 73% |
+
+\* Rough heuristic: share of reviews with at least two common German words or
+umlauts.
+
+Neobanks were chosen over brokers because broker review volume is concentrated
+in Trade Republic, which replies to 2.4% of its 1–2 star reviews. Food delivery
+was rejected because only one of six apps (Lieferando) replies to most of its
+reviews. bunq and Vivid Money were excluded because they get fewer than 1.5
+reviews per day. That leaves **N26, Revolut and C24 Bank**.
+
+**To revisit:** Revolut's median reply time is 0.4 hours, against 16–75 hours
+for the other neobanks, while it replies to only 12.5% of reviews overall. Which
+complaint types make up that fast-answered subset is a question for the
+reply-gap analysis, not a finding yet.
 
 ## What works now
 

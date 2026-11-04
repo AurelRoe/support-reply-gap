@@ -61,7 +61,7 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       *Done:* one command populates the DB from empty, idempotently, checks
       passing, a few thousand reviews per app.
 
-- [ ] **B3. Explore (notebook).** Length and score distributions, language mix,
+- [x] **B3. Explore (notebook).** Length and score distributions, language mix,
       reply rate by score and over time, duplicates and spam, share of
       contentless reviews.
       *Done:* I can describe the data in five sentences and know what cleaning

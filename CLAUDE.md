@@ -12,7 +12,7 @@ because complaint base rates differ between the two and a mixed set confounds
 the dependent variable. The specific apps are chosen in stage B1 by measuring
 reply rates, not by assumption. Do not assume or hardcode a set before then.
 
-Portfolio project for ML/AI engineering job applications. The working plan and
+Portfolio project. The working plan and
 stage sequence is `docs/build-order.md` — read it before proposing structural
 work.
 
@@ -131,7 +131,7 @@ built on it.
   suggesting I run it, and tell me when something is irreversible.
 - Use plan mode for anything structural. Show the plan before writing files.
 - Prefer small, reviewable changes over large ones. I need to be able to explain
-  every file in this repo in a job interview — if a suggestion is something I
+  every file in this repo — if a suggestion is something I
   could not defend, say so rather than writing it.
 - When you write something non-obvious, add a one-line comment saying why, not
   what.

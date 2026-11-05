@@ -221,4 +221,6 @@ __marimo__/
 
 .venv/
 data/raw/
+# dev tally sheet contains review text; data/gold/ is committed on purpose
+data/dev/
 .env

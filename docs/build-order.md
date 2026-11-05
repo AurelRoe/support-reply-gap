@@ -78,10 +78,19 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       forced into complaint categories.
       *Done:* written taxonomy, one paragraph and 2–3 real examples per class,
       committed.
+      *Outcome:* a 150-review dev sample (`notebooks/02_taxonomy_development`)
+      took the eight draft labels to eleven: `account_restricted`,
+      `performance` and `complaint_unspecified` added, `fees_pricing` widened
+      to money owed (rewards, bonuses). Trading and ads were rejected as labels
+      — too rare, and trading is Revolut-only. The 150 reviews are excluded
+      from the gold set.
 
-- [ ] **B5. Hand-label the gold set.** ~300 reviews, stratified across apps and
-      star ratings — not random, which over-samples 1★/5★ noise and
-      under-samples rare classes.
+- [ ] **B5. Hand-label the gold set.** ~400 reviews, stratified across apps and
+      weighted toward 1–2★ — not random, which over-samples 1★/5★ noise and
+      under-samples rare classes. 400 rather than 300 because eleven labels
+      against 300 reviews leaves too many classes under 20 examples; the
+      weighting follows the complaints, since most labels are complaint types.
+      The B4 dev sample (`data/gold/dev_sample_ids.txt`) is excluded.
       ~50 of them get labelled **twice**, days apart, to measure
       self-agreement. That is the realistic ceiling: at 85% self-agreement, a
       model at 0.85 macro-F1 is at human level and chasing 0.95 is chasing

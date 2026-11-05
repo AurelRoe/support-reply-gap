@@ -17,7 +17,7 @@ The full plan is in [docs/build-order.md](docs/build-order.md).
 1. Scrape Google Play reviews for three German apps from one product category
    (neobanks *or* brokers, not a mix, because complaint base rates differ).
    The apps are chosen by measured reply rate, not picked up front.
-2. Hand-label ~300 reviews into a multi-label complaint taxonomy. This gold
+2. Hand-label ~400 reviews into a multi-label complaint taxonomy. This gold
    set is the yardstick for every model.
 3. Compare two classifiers against it: a cheap TF-IDF + logistic regression
    baseline and an LLM with structured output. A confidence router sends

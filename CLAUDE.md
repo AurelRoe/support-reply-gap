@@ -44,26 +44,40 @@ probably out of scope.
 
 ## Label taxonomy
 
-Multi-label: a review can carry several labels. `no_complaint` is exclusive.
-This decision is **settled** — it is already baked into the schema below, the
-metric (macro-F1 over multi-label) and the router's confidence logic. Do not
-reopen it; changing it means relabelling the gold set.
+Multi-label: a review can carry several labels. `no_complaint` and
+`complaint_unspecified` are exclusive. This decision is **settled** — it is
+already baked into the schema below, the metric (macro-F1 over multi-label) and
+the router's confidence logic. Do not reopen it; changing it means relabelling
+the gold set.
+
+The source of truth is `src/support_reply_gap/labeling/taxonomy.py`, with
+examples, rendered to `docs/taxonomy.md`. This table is a summary of it; if
+they disagree, the code wins. Set in B4 from a 150-review dev sample.
 
 | Label | Covers | Does NOT cover |
 |---|---|---|
-| `crash_stability` | Crashes, freezes, app won't start, white screen, bugs that block use | Slow but working; missing features |
-| `login_access` | Can't log in, 2FA/TAN problems, locked out, password reset loops | First-time account opening → `kyc_onboarding` |
-| `kyc_onboarding` | Identity verification, document upload, video ident, account opening rejected or stuck | Being locked out of an existing account → `login_access` |
-| `payments_transfers` | Transfers failing or delayed, deposits not arriving, card declined, blocked payments, order execution | Complaints about the *cost* of a transfer → `fees_pricing` |
-| `fees_pricing` | Fees, spreads, subscription cost, unexpected charges, interest rates | Transfer failing for a non-cost reason → `payments_transfers` |
+| `crash_stability` | Crashes, freezes, app won't start, white screen, bugs that block use | Slow but working → `performance`; missing features → `feature_gap` |
+| `performance` | Slow but working: load times, lag, app getting slower over time | Hangs or anything that blocks use → `crash_stability` |
+| `login_access` | Can't log in, 2FA/TAN problems, locked out, password reset loops | First-time account opening → `kyc_onboarding`; bank restricting the account → `account_restricted` |
+| `kyc_onboarding` | Identity verification, document upload, video ident, account opening rejected or stuck | Locked out of an existing account → `login_access`; re-ident to lift a restriction → `account_restricted` |
+| `account_restricted` | Bank-initiated: account closed, frozen or blocked, funds unreachable, re-ident forced to regain access | User failing to log in → `login_access`; single card or payment blocked while the account works → `payments_transfers` |
+| `payments_transfers` | Transfers failing or delayed, deposits not arriving, card declined or blocked, blocked payments, order execution | Complaints about the *cost* of a transfer → `fees_pricing` |
+| `fees_pricing` | Fees, spreads, subscription cost, unexpected charges, interest rates, and money the user believes they are owed (rewards, bonuses, referral payouts, interest not passed on) | Transfer failing for a non-cost reason → `payments_transfers` |
 | `support_experience` | The experience of contacting support: unreachable, slow, canned replies, no human | The underlying problem they contacted support about — label that too |
-| `feature_gap` | Missing functionality, feature requests, UI/UX complaints about existing features | Features that exist but are broken → `crash_stability` |
+| `feature_gap` | Missing functionality, feature requests, UI/UX complaints about existing features, ads and upselling in the app | Broken features → `crash_stability`; slowness → `performance` |
+| `complaint_unspecified` | Clearly negative with no nameable subject ("Abzocke", "Nie wieder") | Any complaint with a subject, however vague — label the subject |
 | `no_complaint` | Praise, neutral, off-topic, unintelligible | Anything with a complaint in it |
 
 Notes:
 - `support_experience` is a meta-label and co-occurs often. That co-occurrence
   is the core of the analysis — do not collapse it into other labels.
-- With ~300 labelled reviews several classes will have fewer than 20 examples.
+- `feature_gap` is the broadest class. Findings about it are correspondingly
+  vague; say so rather than splitting it further.
+- Trading/crypto and ads were considered as labels in B4 and rejected: too
+  small, and trading is Revolut-specific. Both fold into existing labels and
+  get a line in the README limitations.
+- With ~400 labelled reviews several classes will still have fewer than 20
+  examples (`performance`, `complaint_unspecified` are expected to).
   Report per-class support alongside F1 and flag any class too small to judge.
   Do not quietly merge small classes to make the numbers look better.
 - Human self-agreement on a doubly-labelled subset is the accuracy ceiling.

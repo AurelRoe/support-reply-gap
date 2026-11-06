@@ -2,6 +2,9 @@
 
     python -m support_reply_gap.labeling.gold draw
     python -m support_reply_gap.labeling.gold check [--allow-partial]
+    python -m support_reply_gap.labeling.gold relabel      # days later: blind second pass
+    python -m support_reply_gap.labeling.gold check --pass2
+    python -m support_reply_gap.labeling.gold agreement
 
 The sheet holds review text and stays local (data/labelling/ is gitignored). Only
 review ids and labels are written to data/gold/, which is committed. This module
@@ -26,6 +29,15 @@ DEV_IDS_PATH = ROOT / "data/gold/dev_sample_ids.txt"
 SAMPLE_IDS_PATH = ROOT / "data/gold/gold_sample_ids.txt"
 LABELS_PATH = ROOT / "data/gold/gold_labels.csv"
 SHEET_PATH = ROOT / "data/labelling/gold_sheet.csv"
+
+RELABEL_IDS_PATH = ROOT / "data/gold/relabel_ids.txt"
+PASS2_PATH = ROOT / "data/gold/relabel_pass2.csv"
+RELABEL_SHEET_PATH = ROOT / "data/labelling/relabel_sheet.csv"
+AGREEMENT_REPORT_PATH = ROOT / "reports/self_agreement.md"
+
+RELABEL_SIZE = 50
+# Different from the draw seed, so the relabel order is unrelated to the first pass.
+RELABEL_SEED = 20261107
 
 INFO_COLUMNS = ["review_id", "app_key", "score", "posted_at", "content"]
 SHEET_COLUMNS = [*INFO_COLUMNS, *LABEL_NAMES, "notes"]
@@ -171,29 +183,74 @@ def draw() -> None:
     print(f"wrote {SAMPLE_IDS_PATH.relative_to(ROOT)} (commit this)")
 
 
-def check(allow_partial: bool) -> None:
-    """Validate the filled sheet. When complete, write the committed labels file."""
+def check(allow_partial: bool, pass2: bool = False) -> None:
+    """Validate a filled sheet. When complete, write its committed labels file."""
+    sheet_path, ids_path, out_path = (
+        (RELABEL_SHEET_PATH, RELABEL_IDS_PATH, PASS2_PATH)
+        if pass2
+        else (SHEET_PATH, SAMPLE_IDS_PATH, LABELS_PATH)
+    )
+    expected = read_ids(ids_path)
     try:
-        labels = validate_sheet(
-            read_sheet(SHEET_PATH), read_ids(SAMPLE_IDS_PATH), allow_partial=allow_partial
-        )
+        labels = validate_sheet(read_sheet(sheet_path), expected, allow_partial=allow_partial)
     except SheetError as err:
-        sys.exit(f"sheet has problems:\n{err}")
+        sys.exit(f"{sheet_path.name} has problems:\n{err}")
 
-    total = len(read_ids(SAMPLE_IDS_PATH))
-    print(f"{len(labels)} of {total} reviews labelled")
+    print(f"{len(labels)} of {len(expected)} reviews labelled")
     if len(labels):
         print(class_summary(labels))
         print("labels per review:", labels[list(LABEL_NAMES)].sum(axis=1).value_counts().to_dict())
 
-    if len(labels) < total:
+    if len(labels) < len(expected):
         print("partial sheet: nothing written")
         return
-    if LABELS_PATH.exists():
+    if out_path.exists():
         # Git is the safety net for changes to committed labels: delete, re-run, review the diff.
-        sys.exit(f"refusing to overwrite {LABELS_PATH.name}; delete it first to regenerate")
-    labels.sort_values("review_id").to_csv(LABELS_PATH, index=False)
-    print(f"wrote {LABELS_PATH.relative_to(ROOT)} (commit this)")
+        sys.exit(f"refusing to overwrite {out_path.name}; delete it first to regenerate")
+    labels.sort_values("review_id").to_csv(out_path, index=False)
+    print(f"wrote {out_path.relative_to(ROOT)} (commit this)")
+
+
+def pick_relabel_ids(ids: list[str], n: int = RELABEL_SIZE, seed: int = RELABEL_SEED) -> list[str]:
+    """A plain random subset. Random rather than stratified, so the ceiling describes
+    the gold set as a whole and not a subset tilted toward chosen labels."""
+    return pd.Series(sorted(ids)).sample(n, random_state=seed).tolist()
+
+
+def relabel() -> None:
+    """Write a blind second-pass sheet: same text, blank labels, new order. Never overwrites."""
+    if not LABELS_PATH.exists():
+        sys.exit(f"{LABELS_PATH.name} does not exist yet; finish and check the first pass")
+    if RELABEL_SHEET_PATH.exists() or RELABEL_IDS_PATH.exists():
+        sys.exit(f"refusing to overwrite: {RELABEL_SHEET_PATH.name} or {RELABEL_IDS_PATH.name}")
+
+    ids = pick_relabel_ids(pd.read_csv(LABELS_PATH, dtype={"review_id": str})["review_id"].tolist())
+    # Text comes from the local first-pass sheet; its label and notes columns are not copied.
+    first = read_sheet(SHEET_PATH).set_index("review_id")
+    sheet = build_sheet(first.loc[ids].reset_index())
+
+    sheet.to_csv(RELABEL_SHEET_PATH, index=False, encoding="utf-8-sig")
+    RELABEL_IDS_PATH.write_text("\n".join(sorted(ids)) + "\n", encoding="utf-8")
+    print(f"wrote {RELABEL_SHEET_PATH.relative_to(ROOT)} (local only, {len(ids)} reviews)")
+    print(f"wrote {RELABEL_IDS_PATH.relative_to(ROOT)} (commit this)")
+    print("label it without opening the first-pass sheet or gold_labels.csv")
+
+
+def agreement() -> None:
+    """Score pass 2 against pass 1 and write the self-agreement report."""
+    from support_reply_gap.labeling.agreement import align, render_report
+
+    for path in (LABELS_PATH, PASS2_PATH):
+        if not path.exists():
+            sys.exit(f"{path.name} does not exist yet")
+    read = {"dtype": {"review_id": str}}
+    p1, p2 = align(pd.read_csv(LABELS_PATH, **read), pd.read_csv(PASS2_PATH, **read))
+
+    # Overwriting is fine here: the report is derived from committed files, not typed by hand.
+    AGREEMENT_REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    AGREEMENT_REPORT_PATH.write_text(render_report(p1, p2), encoding="utf-8")
+    print(AGREEMENT_REPORT_PATH.read_text(encoding="utf-8"))
+    print(f"wrote {AGREEMENT_REPORT_PATH.relative_to(ROOT)} (commit this)")
 
 
 def main() -> None:
@@ -204,12 +261,21 @@ def main() -> None:
     check_parser.add_argument(
         "--allow-partial", action="store_true", help="accept unlabelled rows to check progress"
     )
+    check_parser.add_argument(
+        "--pass2", action="store_true", help="check the relabel sheet instead of the gold sheet"
+    )
+    sub.add_parser("relabel", help="write the blind second-pass sheet")
+    sub.add_parser("agreement", help="score pass 2 against pass 1, write the report")
     args = parser.parse_args()
 
     if args.command == "draw":
         draw()
     elif args.command == "check":
-        check(args.allow_partial)
+        check(args.allow_partial, pass2=args.pass2)
+    elif args.command == "relabel":
+        relabel()
+    elif args.command == "agreement":
+        agreement()
 
 
 if __name__ == "__main__":

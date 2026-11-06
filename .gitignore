@@ -226,3 +226,6 @@ data/dev/
 # labelling sheets contain review text; only ids and labels go to data/gold/
 data/labelling/
 .env
+
+# macOS Finder metadata
+.DS_Store

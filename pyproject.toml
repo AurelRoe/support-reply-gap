@@ -10,6 +10,7 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "lingua-language-detector",
+    "scikit-learn",
 ]
 
 [project.optional-dependencies]

@@ -223,4 +223,6 @@ __marimo__/
 data/raw/
 # dev tally sheet contains review text; data/gold/ is committed on purpose
 data/dev/
+# labelling sheets contain review text; only ids and labels go to data/gold/
+data/labelling/
 .env

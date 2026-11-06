@@ -67,7 +67,7 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       *Done:* I can describe the data in five sentences and know what cleaning
       is needed.
 
-- [ ] **B4. Define the taxonomy.** Read 200–300 reviews and refine the five
+- [x] **B4. Define the taxonomy.** Read 200–300 reviews and refine the five
       starting categories, which will probably turn out wrong.
       **Decided before labelling: multi-label.** Reviews routinely complain
       about two things at once. The choice shapes the metric, the prompt schema

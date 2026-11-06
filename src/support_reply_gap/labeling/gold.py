@@ -5,6 +5,7 @@
     python -m support_reply_gap.labeling.gold relabel      # days later: blind second pass
     python -m support_reply_gap.labeling.gold check --pass2
     python -m support_reply_gap.labeling.gold agreement
+    python -m support_reply_gap.labeling.gold split        # once: freezes the test set
 
 The sheet holds review text and stays local (data/labelling/ is gitignored). Only
 review ids and labels are written to data/gold/, which is committed. This module
@@ -34,6 +35,7 @@ RELABEL_IDS_PATH = ROOT / "data/gold/relabel_ids.txt"
 PASS2_PATH = ROOT / "data/gold/relabel_pass2.csv"
 RELABEL_SHEET_PATH = ROOT / "data/labelling/relabel_sheet.csv"
 AGREEMENT_REPORT_PATH = ROOT / "reports/self_agreement.md"
+SPLITS_PATH = ROOT / "data/gold/splits.csv"
 
 RELABEL_SIZE = 50
 # Different from the draw seed, so the relabel order is unrelated to the first pass.
@@ -253,6 +255,22 @@ def agreement() -> None:
     print(f"wrote {AGREEMENT_REPORT_PATH.relative_to(ROOT)} (commit this)")
 
 
+def split() -> None:
+    """Assign train/val/test once. Never overwrites: a re-drawn test set is no longer held out."""
+    from support_reply_gap.labeling.split import assign_splits, split_summary
+
+    if SPLITS_PATH.exists():
+        sys.exit(f"refusing to overwrite {SPLITS_PATH.name}; the test set is frozen")
+    if not LABELS_PATH.exists():
+        sys.exit(f"{LABELS_PATH.name} does not exist yet")
+
+    labels = pd.read_csv(LABELS_PATH, dtype={"review_id": str})
+    splits = assign_splits(labels)
+    splits.to_csv(SPLITS_PATH, index=False)
+    print(split_summary(labels, splits))
+    print(f"wrote {SPLITS_PATH.relative_to(ROOT)} (commit this)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m support_reply_gap.labeling.gold")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -266,6 +284,7 @@ def main() -> None:
     )
     sub.add_parser("relabel", help="write the blind second-pass sheet")
     sub.add_parser("agreement", help="score pass 2 against pass 1, write the report")
+    sub.add_parser("split", help="assign train/val/test once and freeze the test set")
     args = parser.parse_args()
 
     if args.command == "draw":
@@ -276,6 +295,8 @@ def main() -> None:
         relabel()
     elif args.command == "agreement":
         agreement()
+    elif args.command == "split":
+        split()
 
 
 if __name__ == "__main__":

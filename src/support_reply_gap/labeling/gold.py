@@ -2,6 +2,7 @@
 
     python -m support_reply_gap.labeling.gold draw
     python -m support_reply_gap.labeling.gold check [--allow-partial]
+    python -m support_reply_gap.labeling.gold blank-sheet  # fresh sheet for the same sample
     python -m support_reply_gap.labeling.gold relabel      # days later: blind second pass
     python -m support_reply_gap.labeling.gold check --pass2
     python -m support_reply_gap.labeling.gold agreement
@@ -36,6 +37,9 @@ PASS2_PATH = ROOT / "data/gold/relabel_pass2.csv"
 RELABEL_SHEET_PATH = ROOT / "data/labelling/relabel_sheet.csv"
 AGREEMENT_REPORT_PATH = ROOT / "reports/self_agreement.md"
 SPLITS_PATH = ROOT / "data/gold/splits.csv"
+
+# A new order for a rebuilt sheet, so it does not follow the order of an earlier one.
+BLANK_SHEET_SEED = 20261108
 
 RELABEL_SIZE = 50
 # Different from the draw seed, so the relabel order is unrelated to the first pass.
@@ -185,6 +189,31 @@ def draw() -> None:
     print(f"wrote {SAMPLE_IDS_PATH.relative_to(ROOT)} (commit this)")
 
 
+def blank_sheet() -> None:
+    """Rebuild a blank sheet for the drawn sample, text taken from the database.
+
+    For labelling the same 400 reviews again from scratch. Reading the text from
+    Postgres rather than an old sheet means no earlier label or note can carry over.
+    """
+    if SHEET_PATH.exists():
+        sys.exit(f"{SHEET_PATH.name} exists; move it out of the project first")
+    if LABELS_PATH.exists():
+        sys.exit(f"{LABELS_PATH.name} exists; a blank sheet would not match it")
+
+    from support_reply_gap.analysis.data import load_reviews
+
+    ids = read_ids(SAMPLE_IDS_PATH)
+    reviews = load_reviews()
+    sample = reviews[reviews["review_id"].isin(ids)]
+    if len(sample) != len(ids):
+        sys.exit(f"{len(ids) - len(sample)} sampled reviews are missing from the database")
+
+    sample = sample.sample(frac=1.0, random_state=BLANK_SHEET_SEED)
+    SHEET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    build_sheet(sample).to_csv(SHEET_PATH, index=False, encoding="utf-8-sig")
+    print(f"wrote {SHEET_PATH.relative_to(ROOT)} (local only, {len(sample)} reviews, labels blank)")
+
+
 def check(allow_partial: bool, pass2: bool = False) -> None:
     """Validate a filled sheet. When complete, write its committed labels file."""
     sheet_path, ids_path, out_path = (
@@ -282,6 +311,7 @@ def main() -> None:
     check_parser.add_argument(
         "--pass2", action="store_true", help="check the relabel sheet instead of the gold sheet"
     )
+    sub.add_parser("blank-sheet", help="rebuild a blank sheet for the drawn sample")
     sub.add_parser("relabel", help="write the blind second-pass sheet")
     sub.add_parser("agreement", help="score pass 2 against pass 1, write the report")
     sub.add_parser("split", help="assign train/val/test once and freeze the test set")
@@ -291,6 +321,8 @@ def main() -> None:
         draw()
     elif args.command == "check":
         check(args.allow_partial, pass2=args.pass2)
+    elif args.command == "blank-sheet":
+        blank_sheet()
     elif args.command == "relabel":
         relabel()
     elif args.command == "agreement":

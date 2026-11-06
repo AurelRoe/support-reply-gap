@@ -10,7 +10,8 @@ reply rate and median reply latency per complaint type.
 **Status:** Phase A (skeleton) is done. Phase B is nearly done: the three apps
 are chosen (see [App selection](#app-selection-stage-b1)), their reviews are
 ingested (see [Data](#data)), the label taxonomy is set (see
-[Taxonomy](#taxonomy-stage-b4)) and 400 reviews are hand-labelled and split
+[Taxonomy](#taxonomy-stage-b4)) and 400 reviews are sampled and split, with
+hand-labelling under way
 (see [Gold set](#gold-set-stage-b5)). The self-agreement measurement is still
 open. There are no models or findings yet. The full plan is in
 [docs/build-order.md](docs/build-order.md).
@@ -131,8 +132,8 @@ from the gold set.
 ## Gold set (stage B5)
 
 400 reviews, hand-labelled by me, are the yardstick for every model. Only
-review IDs and labels are committed
-([data/gold/](data/gold/)). Review text stays in a local, gitignored sheet.
+review IDs and labels are committed ([data/gold/](data/gold/)). Review text
+stays in a local, gitignored sheet.
 
 **Sampling.** The sample is drawn from the analysis window after the B3
 cleaning rules: German or uncertain language, no one-word or emoji-only
@@ -142,32 +143,21 @@ and spread evenly across the three apps (135 C24, 132 N26, 133 Revolut). A
 random sample would mostly contain 5★ praise and few examples of the rarer
 complaint types.
 
-**Label counts.** 303 reviews carry one label, 80 two, 13 three and 4 four.
+**Discarded first pass.** A first labelling pass used Claude with the
+taxonomy. It was discarded, and the 400 reviews are being labelled again by
+hand from a blank sheet in a new order. LLM-made gold labels would score the
+LLM path (stage C5) against an LLM's own reading of the taxonomy, and would
+make the self-agreement ceiling meaningless.
 
-| Label | Reviews | Train | Val | Test |
-|---|---:|---:|---:|---:|
-| `feature_gap` | 152 | 91 | 31 | 30 |
-| `support_experience` | 72 | 44 | 14 | 14 |
-| `crash_stability` | 63 | 38 | 12 | 13 |
-| `kyc_onboarding` | 44 | 26 | 9 | 9 |
-| `no_complaint` | 42 | 26 | 8 | 8 |
-| `account_restricted` | 35 | 21 | 7 | 7 |
-| `login_access` | 34 | 20 | 7 | 7 |
-| `payments_transfers` | 30 | 18 | 6 | 6 |
-| `fees_pricing` | 20 | 12 | 4 | 4 |
-| `performance` | 17 | 11 | 3 | 3 |
-| `complaint_unspecified` | 9 | 5 | 2 | 2 |
-| **Reviews** | **400** | **243** | **81** | **76** |
+**Split.** 60/20/20 train/validation/test (243 / 81 / 76 reviews), using
+iterative stratification so that every label appears in each split. The split
+was drawn before the first pass was discarded, so it is stratified on those
+labels. It is kept unchanged rather than redrawn: no model has seen the test
+set, and keeping it fixed is what makes it a held-out set. Per-label counts
+per split are reported once the hand labels are in.
 
-**Classes too small to judge.** `performance` (17) and
-`complaint_unspecified` (9) have three and two test examples. F1 scores for
-them will be close to noise. They are reported with that caveat rather than
-merged into other labels. `feature_gap` covers 38% of reviews; it is the
-broadest label, and findings about it are correspondingly vague.
-
-**Split.** 60/20/20, using iterative stratification so that every label
-appears in train, validation and test. The test set is frozen and stays unused
-until the final evaluation.
+**Label counts (pending).** Per-label counts, and the labels too small to
+judge, follow once the hand-labelled pass is complete.
 
 **Self-agreement (pending).** 50 of the 400 will be labelled a second time,
 blind and days after the first pass. Scoring the second pass against the first

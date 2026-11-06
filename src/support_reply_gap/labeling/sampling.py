@@ -28,6 +28,11 @@ MIN_LANGUAGE_CONFIDENCE = 0.7
 # cases rather than assumed.
 DEV_SAMPLE_PER_SCORE: dict[int, int] = {1: 50, 2: 35, 3: 35, 4: 15, 5: 15}
 
+# Stage B5 gold set, 400 reviews. 2-star is the thinnest pool (about 150 eligible
+# once the dev sample is removed); 4-5 star are mostly no_complaint, so 60 of them
+# are enough to draw that boundary.
+GOLD_SAMPLE_PER_SCORE: dict[int, int] = {1: 170, 2: 90, 3: 80, 4: 30, 5: 30}
+
 
 def add_text_flags(df: pd.DataFrame) -> pd.DataFrame:
     """Add length and low-information flags used by the eligibility filter."""
@@ -76,9 +81,7 @@ def drop_repeated_text(df: pd.DataFrame) -> pd.DataFrame:
     costs attention twice and teaches nothing the first copy did not.
     """
     out = df.copy()
-    normalised = (
-        out["content"].str.lower().str.replace(r"[\W_]+", " ", regex=True).str.strip()
-    )
+    normalised = out["content"].str.lower().str.replace(r"[\W_]+", " ", regex=True).str.strip()
     return out.loc[~normalised.duplicated()].copy()
 
 
@@ -98,10 +101,12 @@ def stratified_sample(
     work = df.copy()
     work["day"] = work["posted_at"].dt.date
 
-    # Cap per app-day before sampling, so an incident day cannot fill a stratum.
+    # Cap per app-day so an incident day cannot fill a stratum. The cap is per star
+    # rating too: across all ratings, a day's many 5-star reviews take the slots and
+    # starve the thin 2-3 star strata.
     work = (
         work.sample(frac=1.0, random_state=seed)
-        .groupby(["app_key", "day"], sort=False)
+        .groupby(["app_key", "day", "score"], sort=False)
         .head(max_per_app_day)
     )
 
@@ -124,7 +129,9 @@ def stratified_sample(
         if shortfall > 0:
             rest = pool.loc[~pool.index.isin(chunk.index)]
             if len(rest):
-                chunk = pd.concat([chunk, rest.sample(min(shortfall, len(rest)), random_state=seed)])
+                chunk = pd.concat(
+                    [chunk, rest.sample(min(shortfall, len(rest)), random_state=seed)]
+                )
         chunks.append(chunk)
 
     return (

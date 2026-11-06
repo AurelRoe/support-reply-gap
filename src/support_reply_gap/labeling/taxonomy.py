@@ -7,8 +7,8 @@ Multi-label: a review can carry several labels. `no_complaint` and
 `complaint_unspecified` are exclusive. Multi-label is settled and changing it
 would mean relabelling the gold set.
 
-Stage B4 refines the LABELS against real reviews. Edit this file, re-render the
-docs, then freeze it before labelling the gold set in B5.
+Frozen for the B5 gold set: the labelling sheet's columns are checked against
+LABEL_NAMES, so changing a label here means relabelling the gold set.
 """
 
 from __future__ import annotations

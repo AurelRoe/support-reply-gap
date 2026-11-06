@@ -87,7 +87,8 @@ Notes:
 
 ```
 data/raw/        scraped JSON, gitignored
-data/gold/       hand-labelled set, COMMITTED — the asset
+data/gold/       hand-labelled set, COMMITTED — the asset (ids + labels, no text)
+data/labelling/  labelling sheets with review text, gitignored
 notebooks/       exploration only; never imported by src/
 scripts/         standalone utilities (probe_apps.py)
 src/support_reply_gap/

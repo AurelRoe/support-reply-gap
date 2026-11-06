@@ -7,10 +7,13 @@ and how fast? This repo classifies Google Play reviews into complaint
 categories and joins them to reply data. The result is a descriptive table:
 reply rate and median reply latency per complaint type.
 
-**Status:** Phase A (skeleton) is done. Phase B is under way: the three apps
-are chosen (see [App selection](#app-selection-stage-b1)) and their reviews
-are ingested (see [Data](#data)). There are no models or findings yet.
-The full plan is in [docs/build-order.md](docs/build-order.md).
+**Status:** Phase A (skeleton) is done. Phase B is nearly done: the three apps
+are chosen (see [App selection](#app-selection-stage-b1)), their reviews are
+ingested (see [Data](#data)), the label taxonomy is set (see
+[Taxonomy](#taxonomy-stage-b4)) and 400 reviews are hand-labelled and split
+(see [Gold set](#gold-set-stage-b5)). The self-agreement measurement is still
+open. There are no models or findings yet. The full plan is in
+[docs/build-order.md](docs/build-order.md).
 
 ## Approach
 
@@ -104,6 +107,73 @@ complaint taxonomy before and after. This is outside the current scope and stays
 descriptive, like everything else here. It is the fallback if the main
 finding (stage C2) comes out thin.
 
+## Taxonomy (stage B4)
+
+Eleven labels, defined with real examples in [docs/taxonomy.md](docs/taxonomy.md).
+That file is generated from
+[taxonomy.py](src/support_reply_gap/labeling/taxonomy.py), so the definitions
+and the code cannot drift apart.
+
+The taxonomy is **multi-label**: a review can carry several labels, because
+reviews often complain about two things at once. `no_complaint` and
+`complaint_unspecified` are exclusive and never combined with another label.
+
+I read a 150-review development sample against eight draft labels. That took
+the set to eleven: `account_restricted`, `performance` and
+`complaint_unspecified` were added, and `fees_pricing` was widened to money
+the user believes they are owed (rewards, bonuses, referral payouts).
+Trading/crypto and in-app advertising were considered as labels and rejected.
+Both were too rare, and trading only came up for Revolut. Ads fold into
+`feature_gap`; trading complaints into `payments_transfers` (orders not
+executed) or `feature_gap` (missing or changed trading features). The 150 development reviews are excluded
+from the gold set.
+
+## Gold set (stage B5)
+
+400 reviews, hand-labelled by me, are the yardstick for every model. Only
+review IDs and labels are committed
+([data/gold/](data/gold/)). Review text stays in a local, gitignored sheet.
+
+**Sampling.** The sample is drawn from the analysis window after the B3
+cleaning rules: German or uncertain language, no one-word or emoji-only
+reviews, repeated text dropped, at most two reviews per app, day and star
+rating. It is weighted toward complaints (1★ 170, 2★ 90, 3★ 80, 4★ 30, 5★ 30)
+and spread evenly across the three apps (135 C24, 132 N26, 133 Revolut). A
+random sample would mostly contain 5★ praise and few examples of the rarer
+complaint types.
+
+**Label counts.** 303 reviews carry one label, 80 two, 13 three and 4 four.
+
+| Label | Reviews | Train | Val | Test |
+|---|---:|---:|---:|---:|
+| `feature_gap` | 152 | 91 | 31 | 30 |
+| `support_experience` | 72 | 44 | 14 | 14 |
+| `crash_stability` | 63 | 38 | 12 | 13 |
+| `kyc_onboarding` | 44 | 26 | 9 | 9 |
+| `no_complaint` | 42 | 26 | 8 | 8 |
+| `account_restricted` | 35 | 21 | 7 | 7 |
+| `login_access` | 34 | 20 | 7 | 7 |
+| `payments_transfers` | 30 | 18 | 6 | 6 |
+| `fees_pricing` | 20 | 12 | 4 | 4 |
+| `performance` | 17 | 11 | 3 | 3 |
+| `complaint_unspecified` | 9 | 5 | 2 | 2 |
+| **Reviews** | **400** | **243** | **81** | **76** |
+
+**Classes too small to judge.** `performance` (17) and
+`complaint_unspecified` (9) have three and two test examples. F1 scores for
+them will be close to noise. They are reported with that caveat rather than
+merged into other labels. `feature_gap` covers 38% of reviews; it is the
+broadest label, and findings about it are correspondingly vague.
+
+**Split.** 60/20/20, using iterative stratification so that every label
+appears in train, validation and test. The test set is frozen and stays unused
+until the final evaluation.
+
+**Self-agreement (pending).** 50 of the 400 will be labelled a second time,
+blind and days after the first pass. Scoring the second pass against the first
+with the same macro-F1 used for the models gives the realistic ceiling for any
+model.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.
@@ -140,9 +210,12 @@ docker run -p 8000:8000 support-reply-gap
 ## Repo layout
 
 ```
-src/support_reply_gap/   the package (api/, ingest/, db.py so far)
+src/support_reply_gap/   the package: ingest/, labeling/, eval/, analysis/, api/
+data/gold/               hand-labelled gold set: IDs, labels, split (committed)
 tests/                   pytest; database tests marked @pytest.mark.db
 notebooks/               exploration only, never imported by src/
 scripts/                 standalone utilities
+reports/                 generated tables
 docs/build-order.md      stage-by-stage plan with a definition of done each
+docs/taxonomy.md         label definitions with examples, generated
 ```

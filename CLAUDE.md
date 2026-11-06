@@ -76,8 +76,8 @@ Notes:
 - Trading/crypto and ads were considered as labels in B4 and rejected: too
   small, and trading is Revolut-specific. Both fold into existing labels and
   get a line in the README limitations.
-- With ~400 labelled reviews several classes will still have fewer than 20
-  examples (`performance`, `complaint_unspecified` are expected to).
+- With ~300 labelled reviews several classes will have fewer than 20
+  examples (`performance`, `complaint_unspecified`, likely `fees_pricing`).
   Report per-class support alongside F1 and flag any class too small to judge.
   Do not quietly merge small classes to make the numbers look better.
 - Human self-agreement on a doubly-labelled subset is the accuracy ceiling.

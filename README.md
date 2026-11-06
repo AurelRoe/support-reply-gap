@@ -10,7 +10,7 @@ reply rate and median reply latency per complaint type.
 **Status:** Phase A (skeleton) is done. Phase B is nearly done: the three apps
 are chosen (see [App selection](#app-selection-stage-b1)), their reviews are
 ingested (see [Data](#data)), the label taxonomy is set (see
-[Taxonomy](#taxonomy-stage-b4)) and 400 reviews are sampled and split, with
+[Taxonomy](#taxonomy-stage-b4)) and 300 reviews are sampled and split, with
 hand-labelling under way
 (see [Gold set](#gold-set-stage-b5)). The self-agreement measurement is still
 open. There are no models or findings yet. The full plan is in
@@ -21,7 +21,7 @@ open. There are no models or findings yet. The full plan is in
 1. Scrape Google Play reviews for three German apps from one product category
    (neobanks *or* brokers, not a mix, because complaint base rates differ).
    The apps are chosen by measured reply rate, not picked up front.
-2. Hand-label ~400 reviews into a multi-label complaint taxonomy. This gold
+2. Hand-label ~300 reviews into a multi-label complaint taxonomy. This gold
    set is the yardstick for every model.
 3. Compare two classifiers against it: a cheap TF-IDF + logistic regression
    baseline and an LLM with structured output. A confidence router sends
@@ -131,35 +131,41 @@ from the gold set.
 
 ## Gold set (stage B5)
 
-400 reviews, hand-labelled by me, are the yardstick for every model. Only
+300 reviews, hand-labelled by me, are the yardstick for every model. Only
 review IDs and labels are committed ([data/gold/](data/gold/)). Review text
 stays in a local, gitignored sheet.
 
 **Sampling.** The sample is drawn from the analysis window after the B3
 cleaning rules: German or uncertain language, no one-word or emoji-only
 reviews, repeated text dropped, at most two reviews per app, day and star
-rating. It is weighted toward complaints (1★ 170, 2★ 90, 3★ 80, 4★ 30, 5★ 30)
-and spread evenly across the three apps (135 C24, 132 N26, 133 Revolut). A
-random sample would mostly contain 5★ praise and few examples of the rarer
-complaint types.
+rating. It is weighted toward complaints and spread evenly across the three
+apps. A random sample would mostly contain 5★ praise and few examples of the
+rarer complaint types.
+
+400 reviews were drawn, then trimmed to 300 before labelling to keep
+hand-labelling time manageable. The trim drops reviews at random within each
+split × app × star-rating cell, so the balance survives: 1★ 128, 2★ 68,
+3★ 60, 4★ 23, 5★ 21, and 101 C24, 99 N26, 100 Revolut. The cost is that more
+labels fall under 20 examples; they are flagged, not merged.
 
 **Discarded first pass.** A first labelling pass used Claude with the
-taxonomy. It was discarded, and the 400 reviews are being labelled again by
+taxonomy. It was discarded, and the reviews are being labelled again by
 hand from a blank sheet in a new order. LLM-made gold labels would score the
 LLM path (stage C5) against an LLM's own reading of the taxonomy, and would
 make the self-agreement ceiling meaningless.
 
-**Split.** 60/20/20 train/validation/test (243 / 81 / 76 reviews), using
+**Split.** 60/20/20 train/validation/test (180 / 60 / 60 reviews), using
 iterative stratification so that every label appears in each split. The split
-was drawn before the first pass was discarded, so it is stratified on those
-labels. It is kept unchanged rather than redrawn: no model has seen the test
-set, and keeping it fixed is what makes it a held-out set. Per-label counts
+was drawn on the 400 before the first pass was discarded, so it is stratified
+on those labels, and the trim removed reviews from each split in proportion.
+It is not redrawn: no model has seen the test set, and dropping test reviews
+leaks nothing about the ones that remain. Per-label counts
 per split are reported once the hand labels are in.
 
 **Label counts (pending).** Per-label counts, and the labels too small to
 judge, follow once the hand-labelled pass is complete.
 
-**Self-agreement (pending).** 50 of the 400 will be labelled a second time,
+**Self-agreement (pending).** 50 of the 300 will be labelled a second time,
 blind and days after the first pass. Scoring the second pass against the first
 with the same macro-F1 used for the models gives the realistic ceiling for any
 model.

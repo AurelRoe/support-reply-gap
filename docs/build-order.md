@@ -99,6 +99,11 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       The test split is held out at this point and stays unseen until the end.
       *Done:* labelled CSV committed, train/val/test split, self-agreement
       recorded.
+      *Outcome so far:* drawn at 400, then trimmed to 300 before labelling to
+      keep hand-labelling time manageable, balanced within each split, app
+      and star rating. This accepts more classes under 20 examples; they are
+      flagged in the eval, not merged. A first labelling pass made with Claude
+      was discarded so that the LLM path is not scored against LLM labels.
 
 ---
 

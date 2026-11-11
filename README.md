@@ -10,10 +10,9 @@ reply rate and median reply latency per complaint type.
 **Status:** Phase A (skeleton) is done. Phase B is nearly done: the three apps
 are chosen (see [App selection](#app-selection-stage-b1)), their reviews are
 ingested (see [Data](#data)), the label taxonomy is set (see
-[Taxonomy](#taxonomy-stage-b4)) and 300 reviews are sampled and split, with
-hand-labelling under way
-(see [Gold set](#gold-set-stage-b5)). The self-agreement measurement is still
-open. There are no models or findings yet. The full plan is in
+[Taxonomy](#taxonomy-stage-b4)) and 300 reviews are sampled, split and
+hand-labelled (see [Gold set](#gold-set-stage-b5)). The self-agreement
+measurement is still open. There are no models or findings yet. The full plan is in
 [docs/build-order.md](docs/build-order.md).
 
 ## Approach
@@ -149,7 +148,7 @@ split × app × star-rating cell, so the balance survives: 1★ 128, 2★ 68,
 labels fall under 20 examples; they are flagged, not merged.
 
 **Discarded first pass.** A first labelling pass used Claude with the
-taxonomy. It was discarded, and the reviews are being labelled again by
+taxonomy. It was discarded, and all 300 reviews were labelled again by
 hand from a blank sheet in a new order. LLM-made gold labels would score the
 LLM path (stage C5) against an LLM's own reading of the taxonomy, and would
 make the self-agreement ceiling meaningless.
@@ -159,11 +158,30 @@ iterative stratification so that every label appears in each split. The split
 was drawn on the 400 before the first pass was discarded, so it is stratified
 on those labels, and the trim removed reviews from each split in proportion.
 It is not redrawn: no model has seen the test set, and dropping test reviews
-leaks nothing about the ones that remain. Per-label counts
-per split are reported once the hand labels are in.
+leaks nothing about the ones that remain.
 
-**Label counts (pending).** Per-label counts, and the labels too small to
-judge, follow once the hand-labelled pass is complete.
+**Label counts.** From the hand-labelled pass. 227 reviews carry one label,
+73 carry two or more.
+
+| Label | Total | Train | Val | Test |
+|---|---:|---:|---:|---:|
+| `feature_gap` | 114 | 69 | 23 | 22 |
+| `support_experience` | 48 | 30 | 7 | 11 |
+| `performance` | 40 | 17 | 11 | 12 |
+| `kyc_onboarding` | 37 | 23 | 9 | 5 |
+| `login_access` | 34 | 21 | 6 | 7 |
+| `payments_transfers` | 28 | 16 | 5 | 7 |
+| `no_complaint` | 25 | 14 | 5 | 6 |
+| `crash_stability` | 21 | 11 | 6 | 4 |
+| `account_restricted` | 21 | 12 | 5 | 4 |
+| `complaint_unspecified` | 12 | 10 | 1 | 1 |
+| `fees_pricing` | 10 | 7 | 2 | 1 |
+
+`complaint_unspecified` and `fees_pricing` fall under 20 examples and are
+too small to judge. With one test review each, their test-set F1 is close
+to meaningless, so they are flagged in the eval rather than merged. The split
+was stratified on the discarded labels, not these. Redrawing it now would mean
+choosing the test set after seeing its labels, so it stays.
 
 **Self-agreement (pending).** 50 of the 300 will be labelled a second time,
 blind and days after the first pass. Scoring the second pass against the first

@@ -139,3 +139,29 @@ def stratified_sample(
         .sample(frac=1.0, random_state=seed)  # shuffle, so reading order is not by star
         .reset_index(drop=True)
     )
+
+
+def proportional_subset(
+    df: pd.DataFrame, by: list[str], keep: int, seed: int = 20261109
+) -> pd.DataFrame:
+    """Keep exactly `keep` rows at random, preserving each group's share as closely as possible.
+
+    Each group gets keep * share rows, rounded down; the rows left over go to the groups
+    with the largest rounding remainders (largest-remainder method).
+    """
+    sizes = df.groupby(by).size()
+    exact = sizes * keep / len(df)
+    quota = exact.astype(int)
+    leftover = keep - int(quota.sum())
+    # Sorting on the remainder, then on the group key, keeps ties deterministic.
+    remainders = (exact - quota).rename("r").reset_index()
+    order = remainders.sort_values(["r", *by], ascending=[False, *[True] * len(by)]).index
+    for idx in order[:leftover]:
+        quota.iloc[idx] += 1
+
+    kept = [
+        group.sample(int(quota[key]), random_state=seed)
+        for key, group in df.groupby(by)
+        if quota[key] > 0
+    ]
+    return pd.concat(kept)

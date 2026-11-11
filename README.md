@@ -10,9 +10,9 @@ reply rate and median reply latency per complaint type.
 **Status:** Phase A (skeleton) is done. Phase B is nearly done: the three apps
 are chosen (see [App selection](#app-selection-stage-b1)), their reviews are
 ingested (see [Data](#data)), the label taxonomy is set (see
-[Taxonomy](#taxonomy-stage-b4)) and 400 reviews are hand-labelled and split
-(see [Gold set](#gold-set-stage-b5)). The self-agreement measurement is still
-open. There are no models or findings yet. The full plan is in
+[Taxonomy](#taxonomy-stage-b4)) and 300 reviews are sampled, split and
+hand-labelled (see [Gold set](#gold-set-stage-b5)). The self-agreement
+measurement is still open. There are no models or findings yet. The full plan is in
 [docs/build-order.md](docs/build-order.md).
 
 ## Approach
@@ -20,7 +20,7 @@ open. There are no models or findings yet. The full plan is in
 1. Scrape Google Play reviews for three German apps from one product category
    (neobanks *or* brokers, not a mix, because complaint base rates differ).
    The apps are chosen by measured reply rate, not picked up front.
-2. Hand-label ~400 reviews into a multi-label complaint taxonomy. This gold
+2. Hand-label ~300 reviews into a multi-label complaint taxonomy. This gold
    set is the yardstick for every model.
 3. Compare two classifiers against it: a cheap TF-IDF + logistic regression
    baseline and an LLM with structured output. A confidence router sends
@@ -130,46 +130,54 @@ from the gold set.
 
 ## Gold set (stage B5)
 
-400 reviews, hand-labelled by me, are the yardstick for every model. Only
-review IDs and labels are committed
-([data/gold/](data/gold/)). Review text stays in a local, gitignored sheet.
+300 reviews, hand-labelled by me, are the yardstick for every model. Only
+review IDs and labels are committed ([data/gold/](data/gold/)). Review text
+stays in a local, gitignored sheet.
 
 **Sampling.** The sample is drawn from the analysis window after the B3
 cleaning rules: German or uncertain language, no one-word or emoji-only
 reviews, repeated text dropped, at most two reviews per app, day and star
-rating. It is weighted toward complaints (1★ 170, 2★ 90, 3★ 80, 4★ 30, 5★ 30)
-and spread evenly across the three apps (135 C24, 132 N26, 133 Revolut). A
-random sample would mostly contain 5★ praise and few examples of the rarer
-complaint types.
+rating. It is weighted toward complaints and spread evenly across the three
+apps. A random sample would mostly contain 5★ praise and few examples of the
+rarer complaint types.
 
-**Label counts.** 303 reviews carry one label, 80 two, 13 three and 4 four.
+400 reviews were drawn, then trimmed to 300 before labelling to keep
+hand-labelling time manageable. The trim drops reviews at random within each
+split × app × star-rating cell, so the balance survives: 1★ 128, 2★ 68,
+3★ 60, 4★ 23, 5★ 21, and 101 C24, 99 N26, 100 Revolut. The cost is that more
+labels fall under 20 examples; they are flagged, not merged.
 
-| Label | Reviews | Train | Val | Test |
+**Split.** 60/20/20 train/validation/test (180 / 60 / 60 reviews), using
+iterative stratification so that every label appears in each split. The split
+was drawn on the 400 using labels from an earlier labelling pass, so it is
+stratified on those labels, and the trim removed reviews from each split in proportion.
+It is not redrawn: no model has seen the test set, and dropping test reviews
+leaks nothing about the ones that remain.
+
+**Label counts.** From the hand-labelled pass. 227 reviews carry one label,
+73 carry two or more.
+
+| Label | Total | Train | Val | Test |
 |---|---:|---:|---:|---:|
-| `feature_gap` | 152 | 91 | 31 | 30 |
-| `support_experience` | 72 | 44 | 14 | 14 |
-| `crash_stability` | 63 | 38 | 12 | 13 |
-| `kyc_onboarding` | 44 | 26 | 9 | 9 |
-| `no_complaint` | 42 | 26 | 8 | 8 |
-| `account_restricted` | 35 | 21 | 7 | 7 |
-| `login_access` | 34 | 20 | 7 | 7 |
-| `payments_transfers` | 30 | 18 | 6 | 6 |
-| `fees_pricing` | 20 | 12 | 4 | 4 |
-| `performance` | 17 | 11 | 3 | 3 |
-| `complaint_unspecified` | 9 | 5 | 2 | 2 |
-| **Reviews** | **400** | **243** | **81** | **76** |
+| `feature_gap` | 114 | 69 | 23 | 22 |
+| `support_experience` | 48 | 30 | 7 | 11 |
+| `performance` | 40 | 17 | 11 | 12 |
+| `kyc_onboarding` | 37 | 23 | 9 | 5 |
+| `login_access` | 34 | 21 | 6 | 7 |
+| `payments_transfers` | 28 | 16 | 5 | 7 |
+| `no_complaint` | 25 | 14 | 5 | 6 |
+| `crash_stability` | 21 | 11 | 6 | 4 |
+| `account_restricted` | 21 | 12 | 5 | 4 |
+| `complaint_unspecified` | 12 | 10 | 1 | 1 |
+| `fees_pricing` | 10 | 7 | 2 | 1 |
 
-**Classes too small to judge.** `performance` (17) and
-`complaint_unspecified` (9) have three and two test examples. F1 scores for
-them will be close to noise. They are reported with that caveat rather than
-merged into other labels. `feature_gap` covers 38% of reviews; it is the
-broadest label, and findings about it are correspondingly vague.
+`complaint_unspecified` and `fees_pricing` fall under 20 examples and are
+too small to judge. With one test review each, their test-set F1 is close
+to meaningless, so they are flagged in the eval rather than merged. The split
+was stratified on the earlier pass's labels, not these. Redrawing it now would mean
+choosing the test set after seeing its labels, so it stays.
 
-**Split.** 60/20/20, using iterative stratification so that every label
-appears in train, validation and test. The test set is frozen and stays unused
-until the final evaluation.
-
-**Self-agreement (pending).** 50 of the 400 will be labelled a second time,
+**Self-agreement (pending).** 50 of the 300 will be labelled a second time,
 blind and days after the first pass. Scoring the second pass against the first
 with the same macro-F1 used for the models gives the realistic ceiling for any
 model.

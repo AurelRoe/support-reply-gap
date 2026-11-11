@@ -2,6 +2,9 @@
 
     python -m support_reply_gap.labeling.gold draw
     python -m support_reply_gap.labeling.gold check [--allow-partial]
+    python -m support_reply_gap.labeling.gold blank-sheet  # fresh sheet for the same sample
+    python -m support_reply_gap.labeling.gold trim --to 300   # shrink the sample, balanced
+    python -m support_reply_gap.labeling.gold label [--pass2] [--all]  # label in the terminal
     python -m support_reply_gap.labeling.gold relabel      # days later: blind second pass
     python -m support_reply_gap.labeling.gold check --pass2
     python -m support_reply_gap.labeling.gold agreement
@@ -36,6 +39,10 @@ PASS2_PATH = ROOT / "data/gold/relabel_pass2.csv"
 RELABEL_SHEET_PATH = ROOT / "data/labelling/relabel_sheet.csv"
 AGREEMENT_REPORT_PATH = ROOT / "reports/self_agreement.md"
 SPLITS_PATH = ROOT / "data/gold/splits.csv"
+SHEET_BACKUP_PATH = ROOT / "data/labelling/gold_sheet.before_trim.csv"
+
+# A new order for a rebuilt sheet, so it does not follow the order of an earlier one.
+BLANK_SHEET_SEED = 20261108
 
 RELABEL_SIZE = 50
 # Different from the draw seed, so the relabel order is unrelated to the first pass.
@@ -185,6 +192,68 @@ def draw() -> None:
     print(f"wrote {SAMPLE_IDS_PATH.relative_to(ROOT)} (commit this)")
 
 
+def blank_sheet() -> None:
+    """Rebuild a blank sheet for the drawn sample, text taken from the database.
+
+    For labelling the same 400 reviews again from scratch. Reading the text from
+    Postgres rather than an old sheet means no earlier label or note can carry over.
+    """
+    if SHEET_PATH.exists():
+        sys.exit(f"{SHEET_PATH.name} exists; move it out of the project first")
+    if LABELS_PATH.exists():
+        sys.exit(f"{LABELS_PATH.name} exists; a blank sheet would not match it")
+
+    from support_reply_gap.analysis.data import load_reviews
+
+    ids = read_ids(SAMPLE_IDS_PATH)
+    reviews = load_reviews()
+    sample = reviews[reviews["review_id"].isin(ids)]
+    if len(sample) != len(ids):
+        sys.exit(f"{len(ids) - len(sample)} sampled reviews are missing from the database")
+
+    sample = sample.sample(frac=1.0, random_state=BLANK_SHEET_SEED)
+    SHEET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    build_sheet(sample).to_csv(SHEET_PATH, index=False, encoding="utf-8-sig")
+    print(f"wrote {SHEET_PATH.relative_to(ROOT)} (local only, {len(sample)} reviews, labels blank)")
+
+
+def trim(target: int) -> None:
+    """Shrink the sample to `target` reviews before labels are final.
+
+    Drops at random within each split x app x star-rating cell, so the split shares and
+    the sampling balance survive. Dropping test reviews leaks nothing: the remaining
+    test reviews are still unseen. Updates the sample ids, the split and the sheet,
+    after backing up the sheet.
+    """
+    from support_reply_gap.labeling.sampling import proportional_subset
+
+    if LABELS_PATH.exists():
+        sys.exit(f"{LABELS_PATH.name} exists; trimming after the labels are final is not allowed")
+    if SHEET_BACKUP_PATH.exists():
+        sys.exit(f"{SHEET_BACKUP_PATH.name} exists; the sheet was already trimmed once")
+
+    sheet = read_sheet(SHEET_PATH)
+    ids = read_ids(SAMPLE_IDS_PATH)
+    splits = pd.read_csv(SPLITS_PATH, dtype={"review_id": str})
+    if set(sheet["review_id"]) != ids or set(splits["review_id"]) != ids:
+        sys.exit("sheet, sample ids and split do not cover the same reviews")
+    if target >= len(ids):
+        sys.exit(f"the sample already has {len(ids)} reviews")
+
+    info = sheet[["review_id", "app_key", "score"]].merge(splits, on="review_id")
+    kept = set(proportional_subset(info, ["split", "app_key", "score"], target)["review_id"])
+
+    SHEET_BACKUP_PATH.write_bytes(SHEET_PATH.read_bytes())
+    sheet[sheet["review_id"].isin(kept)].to_csv(SHEET_PATH, index=False, encoding="utf-8-sig")
+    SAMPLE_IDS_PATH.write_text("\n".join(sorted(kept)) + "\n", encoding="utf-8")
+    splits[splits["review_id"].isin(kept)].to_csv(SPLITS_PATH, index=False)
+
+    trimmed = info[info["review_id"].isin(kept)]
+    print(f"kept {len(kept)} of {len(ids)}; sheet backed up to {SHEET_BACKUP_PATH.name}")
+    print(trimmed["split"].value_counts()[["train", "val", "test"]].to_string())
+    print(pd.crosstab(trimmed["app_key"], trimmed["score"], margins=True))
+
+
 def check(allow_partial: bool, pass2: bool = False) -> None:
     """Validate a filled sheet. When complete, write its committed labels file."""
     sheet_path, ids_path, out_path = (
@@ -282,6 +351,12 @@ def main() -> None:
     check_parser.add_argument(
         "--pass2", action="store_true", help="check the relabel sheet instead of the gold sheet"
     )
+    sub.add_parser("blank-sheet", help="rebuild a blank sheet for the drawn sample")
+    trim_parser = sub.add_parser("trim", help="shrink the sample, keeping it balanced")
+    trim_parser.add_argument("--to", type=int, required=True, help="number of reviews to keep")
+    label_parser = sub.add_parser("label", help="label the sheet in the terminal")
+    label_parser.add_argument("--pass2", action="store_true", help="label the relabel sheet")
+    label_parser.add_argument("--all", action="store_true", help="also revisit labelled rows")
     sub.add_parser("relabel", help="write the blind second-pass sheet")
     sub.add_parser("agreement", help="score pass 2 against pass 1, write the report")
     sub.add_parser("split", help="assign train/val/test once and freeze the test set")
@@ -291,6 +366,14 @@ def main() -> None:
         draw()
     elif args.command == "check":
         check(args.allow_partial, pass2=args.pass2)
+    elif args.command == "blank-sheet":
+        blank_sheet()
+    elif args.command == "trim":
+        trim(args.to)
+    elif args.command == "label":
+        from support_reply_gap.labeling.annotate import run
+
+        run(RELABEL_SHEET_PATH if args.pass2 else SHEET_PATH, include_labelled=args.all)
     elif args.command == "relabel":
         relabel()
     elif args.command == "agreement":

@@ -40,3 +40,22 @@ def test_rare_labels_reach_every_split():
     merged = labels.merge(assign_splits(labels), on="review_id")
     per_split = merged.groupby("split")[["complaint_unspecified", "no_complaint"]].sum()
     assert (per_split > 0).all().all()
+
+
+def test_proportional_subset_keeps_exact_size_and_group_shares():
+    from support_reply_gap.labeling.sampling import proportional_subset
+
+    df = pd.DataFrame(
+        {
+            "review_id": [f"t{i:03d}" for i in range(400)],
+            "split": ["train"] * 243 + ["val"] * 81 + ["test"] * 76,
+            "app_key": (["a", "b", "c"] * 134)[:400],
+        }
+    )
+    kept = proportional_subset(df, ["split", "app_key"], 300)
+    assert len(kept) == 300 and kept["review_id"].is_unique
+    counts = kept["split"].value_counts()
+    assert abs(counts["train"] - 243 * 0.75) <= 1.5
+    assert abs(counts["test"] - 76 * 0.75) <= 1.5
+    again = proportional_subset(df, ["split", "app_key"], 300)
+    assert set(again["review_id"]) == set(kept["review_id"])

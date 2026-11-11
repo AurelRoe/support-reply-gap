@@ -147,12 +147,6 @@ split × app × star-rating cell, so the balance survives: 1★ 128, 2★ 68,
 3★ 60, 4★ 23, 5★ 21, and 101 C24, 99 N26, 100 Revolut. The cost is that more
 labels fall under 20 examples; they are flagged, not merged.
 
-**Discarded first pass.** A first labelling pass used Claude with the
-taxonomy. It was discarded, and all 300 reviews were labelled again by
-hand from a blank sheet in a new order. LLM-made gold labels would score the
-LLM path (stage C5) against an LLM's own reading of the taxonomy, and would
-make the self-agreement ceiling meaningless.
-
 **Split.** 60/20/20 train/validation/test (180 / 60 / 60 reviews), using
 iterative stratification so that every label appears in each split. The split
 was drawn on the 400 before the first pass was discarded, so it is stratified

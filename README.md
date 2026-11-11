@@ -149,8 +149,8 @@ labels fall under 20 examples; they are flagged, not merged.
 
 **Split.** 60/20/20 train/validation/test (180 / 60 / 60 reviews), using
 iterative stratification so that every label appears in each split. The split
-was drawn on the 400 before the first pass was discarded, so it is stratified
-on those labels, and the trim removed reviews from each split in proportion.
+was drawn on the 400 using labels from an earlier labelling pass, so it is
+stratified on those labels, and the trim removed reviews from each split in proportion.
 It is not redrawn: no model has seen the test set, and dropping test reviews
 leaks nothing about the ones that remain.
 
@@ -174,7 +174,7 @@ leaks nothing about the ones that remain.
 `complaint_unspecified` and `fees_pricing` fall under 20 examples and are
 too small to judge. With one test review each, their test-set F1 is close
 to meaningless, so they are flagged in the eval rather than merged. The split
-was stratified on the discarded labels, not these. Redrawing it now would mean
+was stratified on the earlier pass's labels, not these. Redrawing it now would mean
 choosing the test set after seeing its labels, so it stays.
 
 **Self-agreement (pending).** 50 of the 300 will be labelled a second time,

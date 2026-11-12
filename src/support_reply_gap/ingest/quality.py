@@ -61,16 +61,16 @@ def run_checks() -> list[CheckResult]:
             CheckResult("null_review_id", nulls, OK if nulls == 0 else FAIL, "must be zero")
         )
 
-        dupes = _scalar(
-            conn, "select count(*) - count(distinct review_id) from reviews"
-        )
+        dupes = _scalar(conn, "select count(*) - count(distinct review_id) from reviews")
         results.append(
             CheckResult("duplicate_review_id", dupes, OK if dupes == 0 else FAIL, "must be zero")
         )
 
         bad_score = _scalar(conn, "select count(*) from reviews where score not between 1 and 5")
         results.append(
-            CheckResult("score_out_of_range", bad_score, OK if bad_score == 0 else FAIL, "must be zero")
+            CheckResult(
+                "score_out_of_range", bad_score, OK if bad_score == 0 else FAIL, "must be zero"
+            )
         )
 
         # --- checks that can genuinely fail ---------------------------------
@@ -119,8 +119,7 @@ def run_checks() -> list[CheckResult]:
 
         reply_no_timestamp = _scalar(
             conn,
-            "select count(*) from reviews "
-            "where reply_content is not null and replied_at is null",
+            "select count(*) from reviews where reply_content is not null and replied_at is null",
         )
         results.append(
             CheckResult(

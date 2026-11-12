@@ -182,6 +182,35 @@ blind and days after the first pass. Scoring the second pass against the first
 with the same macro-F1 used for the models gives the realistic ceiling for any
 model.
 
+## Baseline (stage C1)
+
+TF-IDF over words and character n-grams (3–5 characters within word
+boundaries, so parts of German compounds share features), with one logistic
+regression per label and balanced class weights. Trained on the 180 train
+reviews and tuned on the 60 validation reviews. The test set stays untouched
+until the eval harness (C3).
+
+80 settings were tried: regularisation strength C, German stopwords on/off,
+word pairs on/off, and the decision threshold. Chosen: C = 10, no stopwords,
+single words, threshold 0.3.
+
+| | Macro-F1 |
+|---|---:|
+| Baseline, validation (60 reviews) | 0.486 |
+| Human self-agreement (50 reviews) | pending |
+
+- Neither German stopwords nor word pairs helped. The character n-grams
+  probably already cover what they would add.
+- `performance` (F1 0.15) and `crash_stability` (0.25) are rarely predicted:
+  2 predictions each against 11 and 6 true cases.
+- `fees_pricing` and `complaint_unspecified` have 2 and 1 validation reviews.
+  Their F1 is not interpretable.
+- 0.486 is the best of 80 settings on the same 60 reviews, so it is
+  optimistic. The comparable number is the test-set score from C3.
+- The ceiling and the baseline are measured on different reviews (a random
+  50 from all splits vs. the 60 validation reviews). The comparison is
+  indicative, not exact.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.

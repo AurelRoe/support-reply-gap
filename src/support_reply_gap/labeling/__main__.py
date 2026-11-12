@@ -1,6 +1,6 @@
 """Regenerate docs/taxonomy.md from the taxonomy definitions.
 
-    python -m support_reply_gap.labeling
+python -m support_reply_gap.labeling
 """
 
 from pathlib import Path

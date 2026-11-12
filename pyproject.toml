@@ -12,12 +12,13 @@ dependencies = [
     "lingua-language-detector",
     "scikit-learn",
     "nltk",
+    "matplotlib",
     "iterative-stratification",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff", "httpx"]
-notebook = ["ipykernel", "matplotlib"]
+notebook = ["ipykernel"]
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -211,6 +211,33 @@ single words, threshold 0.3.
   50 from all splits vs. the 60 validation reviews). The comparison is
   indicative, not exact.
 
+## First answer (stage C2)
+
+A rough first pass at the finding: the C1 baseline labels every 1–3★ review in
+the analysis window (1,210 reviews), and each label is joined to whether and how
+fast the app replied. Tables, chart and caveats are in
+[reports/reply_gap_c2.md](reports/reply_gap_c2.md). Only cells with at least 30
+reviews are read here.
+
+![Reply rate by complaint label, relative to each app's average](reports/reply_gap_c2.png)
+
+At C24 and Revolut, reviews labelled `support_experience` receive a reply 13–14
+points more often than the app's 1–3★ reviews overall (76% vs. 63%, 88% vs.
+74%), and at Revolut the same holds for `kyc_onboarding`, `login_access` and
+`account_restricted` (9–14 points), while `feature_gap` and `performance` sit
+1–5 points below the app's rate. Part of this lines up with star rating: 1★
+reviews receive a reply more often than 2★ and 3★ (84% vs. 70% and 69%), and the
+labels above the line mostly carry a higher share of 1★ reviews, although
+`login_access` at Revolut does not (78% vs. 80% for the app). N26 replies to
+99% of these reviews, so its reply rate does not separate labels, and reply
+latency differs far more between apps (median about 3 days at C24, 4 hours at
+N26, 23 minutes at Revolut) than between labels within an app.
+
+4–5★ reviews are left out because the baseline puts complaint labels on about
+half of all 5★ reviews, which is implausible. The labels come from a model at
+0.49 validation macro-F1, so these numbers are a starting point, not the
+result.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.

@@ -229,3 +229,5 @@ data/labelling/
 
 # macOS Finder metadata
 .DS_Store
+# LLM answer cache: labels, cost, latency per review; local so re-runs cost nothing
+data/llm_cache/

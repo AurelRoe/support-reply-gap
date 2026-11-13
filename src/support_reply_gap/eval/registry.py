@@ -21,11 +21,18 @@ def split_inputs(gold: pd.DataFrame, split: str) -> tuple[pd.Series, pd.Series, 
     return ids, texts, y
 
 
-def build_baseline(gold: pd.DataFrame) -> Classifier:
+def build_baseline(gold: pd.DataFrame, **_options) -> Classifier:
     from support_reply_gap.models.baseline import BaselineClassifier
 
     # Train only: validation stays unseen so its score means what it meant in C1.
     return BaselineClassifier(*xy(gold, "train"))
 
 
-MODELS: dict[str, Callable[[pd.DataFrame], Classifier]] = {"baseline": build_baseline}
+def build_llm(gold: pd.DataFrame, max_usd: float = 0.10) -> Classifier:
+    from support_reply_gap.models.llm import LLMClassifier
+
+    # Nothing to train: the gold set is not used, so validation and test stay unseen.
+    return LLMClassifier(max_usd=max_usd)
+
+
+MODELS: dict[str, Callable[..., Classifier]] = {"baseline": build_baseline, "llm": build_llm}

@@ -13,6 +13,7 @@ dependencies = [
     "scikit-learn",
     "nltk",
     "matplotlib",
+    "anthropic",
     "iterative-stratification",
 ]
 

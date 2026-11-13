@@ -280,9 +280,9 @@ it did.
 | | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k | p95 latency |
 |---|---:|---:|---:|---:|
 | Human self-agreement | 0.69 | | | |
-| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | about 10–15 ms |
+| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | a few tens of ms |
 
-Latency is measured per review on a laptop and moves by a few milliseconds
+Latency is measured per review on a laptop and moves by several milliseconds
 between runs, so only its order of magnitude is meaningful.
 
 The single-model intervals are about 0.25 wide. Comparing two of them

@@ -270,6 +270,17 @@ it did.
   labels and split, so results measured against a different gold set are
   flagged instead of compared. The file also holds each review's predicted
   labels (ids and labels, no text).
+- **CI gate (stage C4).** CI has no database and must not call a paid API, so
+  models are scored locally and their result files committed. On every pull
+  request, `python -m support_reply_gap.eval --gate` fails the check if a
+  result is missing or was made from uncommitted code, if any file that can
+  change a score (model code, harness, metrics, taxonomy, gold set) changed
+  after the result was made, if the stored validation macro-F1 does not match
+  the stored per-review predictions, if it falls below the committed floor
+  (baseline: 0.45), or if `reports/eval.md` is out of date. The floor is on
+  validation, because a gate on test would invite tuning until test passed.
+  The gate trusts that a result file came from a real run; that is the price
+  of keeping review text off GitHub.
 - **Paired comparison.** Every model is compared with the baseline on the same
   reviews: each bootstrap resample scores both models on one draw of reviews,
   and the interval is taken on the difference. A review that is hard for both

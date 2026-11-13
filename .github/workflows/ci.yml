@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          # Full history: the eval gate checks a result is newer than the code it scored.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,3 +36,7 @@ jobs:
       - name: Test
         # Skips tests marked @pytest.mark.db — no Postgres runs in CI yet.
         run: pytest -m "not db"
+
+      - name: Eval gate
+        # Checks the committed eval results; needs no database and calls no API.
+        run: python -m support_reply_gap.eval --gate

@@ -11,12 +11,18 @@ from pathlib import Path
 
 import pandas as pd
 
+from support_reply_gap.eval.compare import paired_difference
 from support_reply_gap.eval.harness import FEW_EXAMPLES, RESULTS_DIR, gold_fingerprint
 from support_reply_gap.eval.metrics import exact_match, macro_f1
 from support_reply_gap.labeling.gold import LABELS_PATH, PASS2_PATH, ROOT
 from support_reply_gap.labeling.taxonomy import LABEL_NAMES
 
 EVAL_TABLE_PATH = ROOT / "reports/eval.md"
+REFERENCE_MODEL = "baseline"
+
+
+def gold_labels() -> pd.DataFrame:
+    return pd.read_csv(LABELS_PATH, dtype={"review_id": str})
 
 
 def load_results(results_dir: Path = RESULTS_DIR) -> list[dict]:
@@ -106,7 +112,42 @@ def confusion_table(result: dict, split: str = "val") -> list[str]:
     return lines
 
 
-def render(results: list[dict], human: dict, fingerprint: str) -> str:
+def fmt_diff(d: dict) -> str:
+    low, high = d["ci95"]
+    return f"{d['diff']:+.2f} ({low:+.2f} to {high:+.2f})"
+
+
+def difference_table(results: list[dict], gold: pd.DataFrame) -> list[str]:
+    """Each model against the baseline on the same reviews, with a paired interval."""
+    reference = next((r for r in results if r["model"] == REFERENCE_MODEL), None)
+    others = [r for r in results if r["model"] != REFERENCE_MODEL]
+    if reference is None or not others:
+        return []
+    lines = [
+        "",
+        f"### Difference to {REFERENCE_MODEL}",
+        "",
+        "Macro-F1 minus the baseline's, on the same reviews. The 95% interval resamples",
+        "reviews once for both models, so it is narrower than comparing the two intervals",
+        "above. An interval that excludes 0 means the difference holds across resamples.",
+        "",
+        "| Model | Val Δ macro-F1 (95% CI) | Test Δ macro-F1 (95% CI) |",
+        "|---|---:|---:|",
+    ]
+    for r in others:
+        cells = []
+        for split in ("val", "test"):
+            try:
+                cells.append(fmt_diff(paired_difference(r, reference, split, gold)))
+            except (ValueError, KeyError) as err:
+                cells.append(f"n/a ({err})")
+        lines.append(f"| {r['model']} | " + " | ".join(cells) + " |")
+    return lines
+
+
+def render(
+    results: list[dict], human: dict, fingerprint: str, gold: pd.DataFrame | None = None
+) -> str:
     lines = [
         "# Eval table",
         "",
@@ -119,6 +160,7 @@ def render(results: list[dict], human: dict, fingerprint: str) -> str:
         "comes from resampling the split's reviews 1,000 times.",
         "",
         *summary_table(results, human, fingerprint),
+        *(difference_table(results, gold) if gold is not None else []),
     ]
     for r in results:
         lines += [
@@ -146,5 +188,5 @@ def render(results: list[dict], human: dict, fingerprint: str) -> str:
 
 def write(results_dir: Path = RESULTS_DIR, path: Path = EVAL_TABLE_PATH) -> Path:
     results = latest_per_model(load_results(results_dir))
-    path.write_text(render(results, ceiling(), gold_fingerprint()))
+    path.write_text(render(results, ceiling(), gold_fingerprint(), gold_labels()))
     return path

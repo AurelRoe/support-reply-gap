@@ -268,16 +268,34 @@ it did.
 - **Versioning.** Each run writes a result file to
   [reports/eval/](reports/eval/) with the commit and a checksum of the gold
   labels and split, so results measured against a different gold set are
-  flagged instead of compared.
+  flagged instead of compared. The file also holds each review's predicted
+  labels (ids and labels, no text).
+- **Paired comparison.** Every model is compared with the baseline on the same
+  reviews: each bootstrap resample scores both models on one draw of reviews,
+  and the interval is taken on the difference. A review that is hard for both
+  cancels out. Both models are averaged over the same labels in each
+  resample, so a rare label cannot drop out for one model and count as 0 for
+  the other.
 
 | | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k | p95 latency |
 |---|---:|---:|---:|---:|
 | Human self-agreement | 0.69 | | | |
-| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | 14 ms |
+| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | about 10–15 ms |
 
-The intervals are wide: with 60 reviews per split, a second model has to beat
-the baseline by a clear margin before the table can tell them apart. On
-validation, 7 of the 11 true `performance` reviews are predicted as
+Latency is measured per review on a laptop and moves by a few milliseconds
+between runs, so only its order of magnitude is meaningful.
+
+The single-model intervals are about 0.25 wide. Comparing two of them
+side by side would need a gap of around 25 points before they stop
+overlapping. To see what pairing gains, the baseline was compared with three
+of its own variants (C = 1, C = 3, threshold 0.5). The paired interval on the
+difference came out 1.7 to 4.5 times narrower than comparing separate
+intervals. It is narrowest when the two models make similar errors (about
+±0.06 for C = 3) and wider when they differ (about ±0.10 for C = 1). The LLM
+will likely make different errors from TF-IDF, so a gap of roughly 10 points
+is what the table can resolve against the baseline, not 5.
+
+On validation, 7 of the 11 true `performance` reviews are predicted as
 `feature_gap`, so the baseline mostly confuses "slow" with "missing", not with
 "broken".
 

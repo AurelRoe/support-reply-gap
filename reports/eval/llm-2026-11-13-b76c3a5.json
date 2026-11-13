@@ -1,0 +1,938 @@
+{
+  "model": "llm",
+  "config": {
+    "model": "claude-haiku-5-5",
+    "effort": "low",
+    "max_tokens": 1024,
+    "prompt": "classify_v1.md",
+    "prompt_sha": "ab9a86c52c9e",
+    "api_calls": 115,
+    "cache_hits": 5,
+    "failures": 0,
+    "new_spend_usd": 0.010405
+  },
+  "run_at": "2026-11-13T15:07:33+00:00",
+  "commit": "b76c3a5",
+  "gold_fingerprint": "c9be9b7c5513",
+  "splits": {
+    "val": {
+      "n": 60,
+      "macro_f1": 0.6726440356390474,
+      "macro_f1_ci95": [
+        0.5723507114894675,
+        0.8028545193196897
+      ],
+      "exact_match": 0.5666666666666667,
+      "cost_per_1k_usd": 0.09408199999999999,
+      "latency_p95_ms": 2512.8681530477475,
+      "latency_median_ms": 1173.1897279969417,
+      "per_class": [
+        {
+          "label": "crash_stability",
+          "f1": 0.5263157894736842,
+          "support": 6,
+          "predicted": 13,
+          "few_examples": false
+        },
+        {
+          "label": "performance",
+          "f1": 0.3076923076923077,
+          "support": 11,
+          "predicted": 2,
+          "few_examples": false
+        },
+        {
+          "label": "login_access",
+          "f1": 0.8,
+          "support": 6,
+          "predicted": 9,
+          "few_examples": false
+        },
+        {
+          "label": "kyc_onboarding",
+          "f1": 0.7777777777777778,
+          "support": 9,
+          "predicted": 9,
+          "few_examples": false
+        },
+        {
+          "label": "account_restricted",
+          "f1": 1.0,
+          "support": 5,
+          "predicted": 5,
+          "few_examples": false
+        },
+        {
+          "label": "payments_transfers",
+          "f1": 0.5454545454545454,
+          "support": 5,
+          "predicted": 6,
+          "few_examples": false
+        },
+        {
+          "label": "fees_pricing",
+          "f1": 0.8,
+          "support": 2,
+          "predicted": 3,
+          "few_examples": true
+        },
+        {
+          "label": "support_experience",
+          "f1": 1.0,
+          "support": 7,
+          "predicted": 7,
+          "few_examples": false
+        },
+        {
+          "label": "feature_gap",
+          "f1": 0.8085106382978723,
+          "support": 23,
+          "predicted": 24,
+          "few_examples": false
+        },
+        {
+          "label": "complaint_unspecified",
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 0,
+          "few_examples": true
+        },
+        {
+          "label": "no_complaint",
+          "f1": 0.8333333333333334,
+          "support": 5,
+          "predicted": 7,
+          "few_examples": false
+        }
+      ],
+      "confusion": {
+        "crash_stability": {
+          "crash_stability": 5,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 1,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "performance": {
+          "crash_stability": 4,
+          "performance": 2,
+          "login_access": 2,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 2,
+          "fees_pricing": 1,
+          "support_experience": 1,
+          "feature_gap": 6,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 9
+        },
+        "login_access": {
+          "crash_stability": 4,
+          "performance": 0,
+          "login_access": 6,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 1,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 0
+        },
+        "kyc_onboarding": {
+          "crash_stability": 1,
+          "performance": 0,
+          "login_access": 4,
+          "kyc_onboarding": 7,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 3,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "account_restricted": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 1,
+          "kyc_onboarding": 0,
+          "account_restricted": 5,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 0
+        },
+        "payments_transfers": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 3,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "fees_pricing": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 2,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 0
+        },
+        "support_experience": {
+          "crash_stability": 1,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 2,
+          "account_restricted": 1,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 7,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 0
+        },
+        "feature_gap": {
+          "crash_stability": 4,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 2,
+          "fees_pricing": 1,
+          "support_experience": 3,
+          "feature_gap": 19,
+          "complaint_unspecified": 0,
+          "no_complaint": 1,
+          "missed": 4
+        },
+        "complaint_unspecified": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 1,
+          "missed": 1
+        },
+        "no_complaint": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 5,
+          "missed": 0
+        }
+      },
+      "predictions": {
+        "05ad339f-a06c-48a4-9242-685299cb7616": [
+          "feature_gap"
+        ],
+        "0bf52c4f-99b4-4be9-aa7c-866257f1e55d": [
+          "kyc_onboarding"
+        ],
+        "0ddb9114-85c4-4901-b27b-bc9e3af4714e": [
+          "login_access",
+          "kyc_onboarding"
+        ],
+        "18550eac-d983-4800-a7f2-28c04d7cbc79": [
+          "payments_transfers"
+        ],
+        "1c32eae1-b681-4a16-8a25-07712b2a6795": [
+          "crash_stability",
+          "login_access"
+        ],
+        "20569430-4a6d-43e5-86ee-f99e69dcef1b": [
+          "feature_gap"
+        ],
+        "22611aec-5bdb-44f2-93a9-e54f0eac7896": [
+          "feature_gap"
+        ],
+        "22d5a0b4-b8ec-4b2a-83e1-a07ea4a14a95": [
+          "fees_pricing"
+        ],
+        "25457f2c-a479-4d15-be6f-5788282f703b": [
+          "feature_gap"
+        ],
+        "26f91f88-0454-4f85-a383-692bd14903fa": [
+          "crash_stability",
+          "payments_transfers"
+        ],
+        "35060348-c870-44e7-94d0-a29808ae7367": [
+          "crash_stability"
+        ],
+        "3a54d46f-10ea-489f-89d8-62d3fe1b9b3c": [
+          "crash_stability",
+          "feature_gap"
+        ],
+        "43a85215-b825-4830-90aa-537ce272d87d": [
+          "performance"
+        ],
+        "4933b583-2063-4230-aad8-5cd1c0f422e7": [
+          "account_restricted"
+        ],
+        "4a71a23b-7e99-48e6-8f30-31846abbfc08": [
+          "feature_gap"
+        ],
+        "4abae987-5d2f-42bf-b2d6-01568ad5ecb7": [
+          "feature_gap"
+        ],
+        "4f3c1629-9e83-42e2-9941-c27b5b8bad3b": [
+          "feature_gap"
+        ],
+        "51db874c-b907-4974-b441-319b303ebefa": [
+          "no_complaint"
+        ],
+        "57d2e012-54c6-44c0-bc2c-7f3d59427e1c": [
+          "support_experience"
+        ],
+        "588e68af-cb97-4bee-9fe5-bc4bf640ddb5": [
+          "feature_gap"
+        ],
+        "61bb2e23-a7cd-48b9-bf3d-dc915bcaae53": [
+          "no_complaint"
+        ],
+        "6a0a5b22-ae3f-4be1-b51f-2e083a20b14c": [
+          "feature_gap"
+        ],
+        "6af21d54-1530-4f89-b101-c2fc14fdbb73": [
+          "crash_stability"
+        ],
+        "6d46efe0-c770-4c04-b447-c117a1779122": [
+          "no_complaint"
+        ],
+        "7641c6f2-4b41-47bd-8b0c-5828dc52dfdd": [
+          "crash_stability"
+        ],
+        "7c87a084-d498-45dd-8030-ccf045e6dcf5": [
+          "fees_pricing"
+        ],
+        "83f96258-d253-4c38-81c3-ac4d693d2000": [
+          "crash_stability"
+        ],
+        "84479dad-d6f7-443f-aeb9-6c149289ccaa": [
+          "crash_stability",
+          "login_access"
+        ],
+        "89077cbd-8498-4520-8c1a-ee3eb593f7ed": [
+          "payments_transfers"
+        ],
+        "8a5b1dd2-a04b-4785-babd-b414e5985baa": [
+          "feature_gap"
+        ],
+        "8eea0a2f-a170-4f74-a22f-5061507598ac": [
+          "support_experience",
+          "feature_gap"
+        ],
+        "92651bbb-51f5-474f-939a-f3417a1bb4bb": [
+          "no_complaint"
+        ],
+        "92b5e7ca-13fc-42d6-a32f-beb9eeb4bd8c": [
+          "login_access",
+          "payments_transfers",
+          "support_experience",
+          "feature_gap"
+        ],
+        "93ecf66f-b710-47bf-a28d-7b4289d82bad": [
+          "no_complaint"
+        ],
+        "98d1f012-7cf6-408d-8f4e-949940a2a185": [
+          "crash_stability",
+          "login_access"
+        ],
+        "9f5e021b-00c6-4942-b7d3-3b1f944b2f1a": [
+          "kyc_onboarding",
+          "support_experience"
+        ],
+        "a7712a50-75fe-4a35-88a5-d08c8512ebef": [
+          "no_complaint"
+        ],
+        "a9d5bf6a-e818-413b-bf47-3df2673acaa9": [
+          "crash_stability",
+          "kyc_onboarding"
+        ],
+        "aa91b48c-b59a-44d3-9289-134e1769a881": [
+          "account_restricted"
+        ],
+        "aad5713e-11bc-4525-9eaa-c53d72f16fa8": [
+          "no_complaint"
+        ],
+        "af34454a-e816-4878-bc07-8930c6b778c0": [
+          "account_restricted"
+        ],
+        "af7059d6-976b-4389-ab23-c8148325bdc0": [
+          "kyc_onboarding",
+          "support_experience"
+        ],
+        "b02941a5-4654-440d-9f8e-dc1f91f3634c": [
+          "feature_gap"
+        ],
+        "b5af46bc-594d-4b32-9acd-4ee3e27dc815": [
+          "kyc_onboarding",
+          "feature_gap"
+        ],
+        "b8e7a08e-0cc7-492f-b269-8c18f187f5d2": [
+          "account_restricted",
+          "payments_transfers"
+        ],
+        "bac3e2e9-bff9-44a3-9be7-1dedd4864487": [
+          "feature_gap"
+        ],
+        "bbf0405e-b8eb-40ec-ae38-98536f2aa6ff": [
+          "login_access",
+          "account_restricted",
+          "support_experience"
+        ],
+        "c0dbe46f-26f1-4d66-941d-35b9dd5fbb5e": [
+          "login_access"
+        ],
+        "c5bf1ec5-e808-4707-8d15-08bb1089987d": [
+          "login_access"
+        ],
+        "cae1ce22-e477-430e-aec7-9ca0a19fbb2f": [
+          "feature_gap"
+        ],
+        "cf0dcf67-a13f-4cbf-94dc-f999051b1401": [
+          "kyc_onboarding"
+        ],
+        "d1d98582-1a3b-450d-9657-e9604e5d8286": [
+          "crash_stability",
+          "fees_pricing",
+          "feature_gap"
+        ],
+        "da9d56a6-69f3-48f8-887b-531f74137675": [
+          "feature_gap"
+        ],
+        "df508608-2a79-4206-9ce8-da5a9484da5a": [
+          "performance",
+          "feature_gap"
+        ],
+        "e8089af3-9d66-46c9-a0c3-038b2ba62324": [
+          "kyc_onboarding",
+          "payments_transfers"
+        ],
+        "e8ce2874-d84e-4293-ae4a-63fcc2fae6dd": [
+          "feature_gap"
+        ],
+        "eaf09ae1-1dcb-4def-95d3-91bb50cab88c": [
+          "crash_stability",
+          "login_access",
+          "kyc_onboarding"
+        ],
+        "f7247c48-6e36-4cb9-8978-ecce8fc0a6de": [
+          "feature_gap"
+        ],
+        "f74d8791-cedd-45eb-bb16-dbd5bcdcded7": [
+          "feature_gap"
+        ],
+        "fb760957-1300-4103-a1e6-a653270b6630": [
+          "crash_stability",
+          "support_experience",
+          "feature_gap"
+        ]
+      }
+    },
+    "test": {
+      "n": 60,
+      "macro_f1": 0.5551239610063139,
+      "macro_f1_ci95": [
+        0.45421902574100537,
+        0.6731225400336859
+      ],
+      "exact_match": 0.48333333333333334,
+      "cost_per_1k_usd": 0.09193666666666668,
+      "latency_p95_ms": 2351.8492418064848,
+      "latency_median_ms": 1198.1331514980411,
+      "per_class": [
+        {
+          "label": "crash_stability",
+          "f1": 0.2857142857142857,
+          "support": 4,
+          "predicted": 10,
+          "few_examples": true
+        },
+        {
+          "label": "performance",
+          "f1": 0.47058823529411764,
+          "support": 12,
+          "predicted": 5,
+          "few_examples": false
+        },
+        {
+          "label": "login_access",
+          "f1": 0.5,
+          "support": 7,
+          "predicted": 5,
+          "few_examples": false
+        },
+        {
+          "label": "kyc_onboarding",
+          "f1": 0.5714285714285714,
+          "support": 5,
+          "predicted": 9,
+          "few_examples": false
+        },
+        {
+          "label": "account_restricted",
+          "f1": 0.8,
+          "support": 4,
+          "predicted": 6,
+          "few_examples": true
+        },
+        {
+          "label": "payments_transfers",
+          "f1": 0.5,
+          "support": 7,
+          "predicted": 13,
+          "few_examples": false
+        },
+        {
+          "label": "fees_pricing",
+          "f1": 0.3333333333333333,
+          "support": 1,
+          "predicted": 5,
+          "few_examples": true
+        },
+        {
+          "label": "support_experience",
+          "f1": 0.8333333333333334,
+          "support": 11,
+          "predicted": 13,
+          "few_examples": false
+        },
+        {
+          "label": "feature_gap",
+          "f1": 0.8888888888888888,
+          "support": 22,
+          "predicted": 23,
+          "few_examples": false
+        },
+        {
+          "label": "complaint_unspecified",
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 0,
+          "few_examples": true
+        },
+        {
+          "label": "no_complaint",
+          "f1": 0.9230769230769231,
+          "support": 6,
+          "predicted": 7,
+          "few_examples": false
+        }
+      ],
+      "confusion": {
+        "crash_stability": {
+          "crash_stability": 2,
+          "performance": 1,
+          "login_access": 0,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "performance": {
+          "crash_stability": 6,
+          "performance": 4,
+          "login_access": 1,
+          "kyc_onboarding": 2,
+          "account_restricted": 0,
+          "payments_transfers": 7,
+          "fees_pricing": 1,
+          "support_experience": 3,
+          "feature_gap": 5,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 8
+        },
+        "login_access": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 3,
+          "kyc_onboarding": 4,
+          "account_restricted": 1,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 4,
+          "feature_gap": 1,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 4
+        },
+        "kyc_onboarding": {
+          "crash_stability": 1,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 4,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 2,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "account_restricted": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 4,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 0
+        },
+        "payments_transfers": {
+          "crash_stability": 2,
+          "performance": 1,
+          "login_access": 1,
+          "kyc_onboarding": 1,
+          "account_restricted": 2,
+          "payments_transfers": 5,
+          "fees_pricing": 0,
+          "support_experience": 3,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "fees_pricing": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 1,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 0
+        },
+        "support_experience": {
+          "crash_stability": 1,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 2,
+          "account_restricted": 3,
+          "payments_transfers": 2,
+          "fees_pricing": 1,
+          "support_experience": 10,
+          "feature_gap": 1,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "feature_gap": {
+          "crash_stability": 2,
+          "performance": 2,
+          "login_access": 0,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 4,
+          "fees_pricing": 1,
+          "support_experience": 1,
+          "feature_gap": 20,
+          "complaint_unspecified": 0,
+          "no_complaint": 1,
+          "missed": 2
+        },
+        "complaint_unspecified": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 1,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "no_complaint": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 6,
+          "missed": 0
+        }
+      },
+      "predictions": {
+        "0197fba0-c378-4965-bc22-5da6d39bcb80": [
+          "account_restricted"
+        ],
+        "04de4a84-49b8-478b-855b-283b12be6ba3": [
+          "support_experience"
+        ],
+        "05e60e3a-ba33-4802-8cec-3bfa419a661e": [
+          "feature_gap"
+        ],
+        "0bb7e30c-e462-454a-8512-92c68781fbb9": [
+          "account_restricted",
+          "payments_transfers"
+        ],
+        "120f6a6e-77f7-4dd3-9c88-c6e19a6df146": [
+          "crash_stability",
+          "performance"
+        ],
+        "1af15d48-318b-492a-ace5-f939b2318ba2": [
+          "fees_pricing"
+        ],
+        "1ede3f05-99f6-43e7-9b02-8fdda4a0f79a": [
+          "account_restricted",
+          "support_experience"
+        ],
+        "215af764-0c7e-4c67-9c16-0c2cb2b9cae8": [
+          "login_access",
+          "kyc_onboarding"
+        ],
+        "2345a11b-86b5-48a4-b142-20334766346a": [
+          "payments_transfers",
+          "feature_gap"
+        ],
+        "23b511c6-e12a-4d80-a0a5-41b700175f40": [
+          "fees_pricing"
+        ],
+        "2458b889-2d42-47b8-a3d4-16aae81862e6": [
+          "account_restricted"
+        ],
+        "26bba802-93bc-4e2a-a528-71f37fb21db1": [
+          "kyc_onboarding",
+          "support_experience"
+        ],
+        "28dde5e2-1986-4831-8980-993baf32b086": [
+          "no_complaint"
+        ],
+        "293545b6-ef1c-48c9-a84c-2c22f83d310f": [
+          "support_experience"
+        ],
+        "29aa5a39-e1b0-4d74-8a76-cb94933b6ae8": [
+          "kyc_onboarding"
+        ],
+        "2fa6e3e6-2e1c-44ff-9eed-5d4edc0b5654": [
+          "performance",
+          "feature_gap"
+        ],
+        "356fd748-5f92-488b-9125-f4c7dd85c281": [
+          "payments_transfers",
+          "feature_gap"
+        ],
+        "3707d4d4-29a0-4dca-bcbf-60cac455400a": [
+          "crash_stability",
+          "payments_transfers"
+        ],
+        "3a22d19e-82aa-46cf-ae65-d5763568a8cc": [
+          "fees_pricing",
+          "support_experience"
+        ],
+        "3d2e2c36-deaa-4473-b6e8-9191bd9483ec": [
+          "feature_gap"
+        ],
+        "45f29bc5-f58b-471f-a0a1-1a1c2dbcf9fb": [
+          "payments_transfers",
+          "feature_gap"
+        ],
+        "4dc043e5-836e-46b7-a27d-6ac380b42257": [
+          "crash_stability",
+          "performance",
+          "feature_gap"
+        ],
+        "535fd06c-3634-4ba6-afa7-86264eef2d14": [
+          "crash_stability",
+          "payments_transfers",
+          "fees_pricing",
+          "feature_gap"
+        ],
+        "53c12846-b946-4f96-a2ed-d317ba6d7939": [
+          "feature_gap"
+        ],
+        "570ac6f3-95fc-41f0-ad3a-099ada5df87b": [
+          "login_access",
+          "support_experience"
+        ],
+        "586c25f6-a0d2-405f-8ea6-7797052ab4af": [
+          "payments_transfers"
+        ],
+        "5a7a088a-d9f6-4062-bf7e-1e37aaab7fe9": [
+          "feature_gap"
+        ],
+        "66b56a0d-d7db-4f65-9032-16b67fb3ba2f": [
+          "account_restricted",
+          "payments_transfers"
+        ],
+        "67d03662-b960-46e3-a627-9985e8751a31": [
+          "feature_gap"
+        ],
+        "69caefe9-9e69-49ba-8cdd-c1140db1c79a": [
+          "no_complaint"
+        ],
+        "7392e6f3-00f8-4b39-8210-e698f881c0e5": [
+          "crash_stability",
+          "support_experience"
+        ],
+        "76b72f91-c00a-4a3a-b395-d689d904e889": [
+          "feature_gap"
+        ],
+        "832e5272-28ba-4a35-8b77-70b05648f147": [
+          "crash_stability",
+          "performance",
+          "payments_transfers"
+        ],
+        "8a9af338-b79e-49a7-93ec-00c2a69a254d": [
+          "payments_transfers",
+          "support_experience",
+          "feature_gap"
+        ],
+        "8f66be45-c69c-42bb-adad-8ee7902857e2": [
+          "feature_gap"
+        ],
+        "94d633c4-cbce-4c5a-ad66-81200463d5b5": [
+          "kyc_onboarding",
+          "feature_gap"
+        ],
+        "a54827df-2677-4af2-949e-a3845f41ea30": [
+          "feature_gap"
+        ],
+        "a923b4cb-54bf-44f7-afbd-9f0ab93aa9ad": [
+          "login_access"
+        ],
+        "ad9fd39d-4981-4f5f-9f95-66e99576dd33": [
+          "login_access",
+          "kyc_onboarding",
+          "payments_transfers",
+          "support_experience"
+        ],
+        "aea5c59f-6e7b-4167-8607-5c6430af50c4": [
+          "payments_transfers"
+        ],
+        "aeedee3e-6ee7-4460-ad81-7490aa77df0f": [
+          "login_access",
+          "kyc_onboarding"
+        ],
+        "bc32a50c-0f39-4e3f-8fc2-0848b6e85593": [
+          "feature_gap"
+        ],
+        "bd0fa439-6e26-4ec9-8864-b9c78858697c": [
+          "support_experience"
+        ],
+        "c049663f-92b6-4ade-8818-b9419ddcaad9": [
+          "crash_stability",
+          "payments_transfers"
+        ],
+        "c8bcc2c1-8f01-43d6-be54-5560eac9bdd7": [
+          "kyc_onboarding",
+          "support_experience"
+        ],
+        "cd476967-3fbd-4dd9-8172-5b2eb53e6dec": [
+          "crash_stability",
+          "kyc_onboarding",
+          "support_experience"
+        ],
+        "d0c11cd5-125a-447e-b3be-14b1e1a82e93": [
+          "feature_gap"
+        ],
+        "d10310e4-4e51-43a9-b36b-6207e8460ccf": [
+          "account_restricted",
+          "support_experience"
+        ],
+        "d4c8395c-c1e7-479d-a63d-e2f3075d90ab": [
+          "performance"
+        ],
+        "da301207-fffd-4892-b652-4902f14bf672": [
+          "feature_gap"
+        ],
+        "daf2bfcf-ebfa-410b-a49f-1b0272fcd0a1": [
+          "feature_gap"
+        ],
+        "dcbb9032-c7a2-49d4-8d1e-ed3fecd424de": [
+          "kyc_onboarding",
+          "feature_gap"
+        ],
+        "e66a2fbc-8b0c-4a30-9742-8c4ea1467bde": [
+          "no_complaint"
+        ],
+        "ed3caebe-82de-452b-a35d-2c857adeb687": [
+          "no_complaint"
+        ],
+        "eef5135d-022a-468a-bc06-6e8c6e65672d": [
+          "fees_pricing",
+          "feature_gap"
+        ],
+        "f29fc8b4-8583-4dc7-8e92-0830c5b56157": [
+          "no_complaint"
+        ],
+        "f5de04ef-e87b-490e-bf06-c88d59c89d3b": [
+          "no_complaint"
+        ],
+        "f616055d-1289-4cf5-b175-7f92ce294a3b": [
+          "no_complaint"
+        ],
+        "f664b1a7-f3f4-4f48-9df9-5134f9e0be82": [
+          "crash_stability",
+          "feature_gap"
+        ],
+        "f87f7886-91a2-4b5b-a19b-8a1cfd6c881b": [
+          "crash_stability"
+        ]
+      }
+    }
+  }
+}

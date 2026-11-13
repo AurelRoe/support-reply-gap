@@ -11,7 +11,18 @@ comes from resampling the split's reviews 1,000 times.
 | Model | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Test exact match | Cost / 1k reviews | p95 latency | Run |
 |---|---:|---:|---:|---:|---:|---|
 | Human self-agreement (50 reviews) | 0.69 | | 0.64 | | | ceiling |
-| baseline | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | 0.45 | $0.00 | 11 ms | 2026-11-13, `5a758d4` |
+| baseline | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | 0.45 | $0.00 | 14 ms | 2026-11-13, `b76c3a5` |
+| llm | 0.67 (0.57–0.80) | 0.56 (0.45–0.67) | 0.48 | $0.09 | 2.4 s | 2026-11-13, `b76c3a5` |
+
+### Difference to baseline
+
+Macro-F1 minus the baseline's, on the same reviews. The 95% interval resamples
+reviews once for both models, so it is narrower than comparing the two intervals
+above. An interval that excludes 0 means the difference holds across resamples.
+
+| Model | Val Δ macro-F1 (95% CI) | Test Δ macro-F1 (95% CI) |
+|---|---:|---:|
+| llm | +0.19 (+0.08 to +0.34) | +0.11 (+0.02 to +0.22) |
 
 ## baseline
 
@@ -51,3 +62,42 @@ so test errors do not steer changes.
 | `feature_gap` | · | 1 | 2 | · | · | 5 | · | 2 | **19** | · | · | 4 |
 | `complaint_unspecified` | · | · | · | · | · | · | · | · | · | **0** | 1 | 1 |
 | `no_complaint` | · | · | · | · | · | · | · | · | 2 | · | **3** | 2 |
+
+## llm
+
+Settings: `{"model": "claude-haiku-5-5", "effort": "low", "max_tokens": 1024, "prompt": "classify_v1.md", "prompt_sha": "ab9a86c52c9e", "api_calls": 115, "cache_hits": 5, "failures": 0, "new_spend_usd": 0.010405}`
+
+*Italic*: fewer than 5 examples in that split, not interpretable.
+
+| Label | Val F1 (support) | Test F1 (support) |
+|---|---:|---:|
+| `crash_stability` | 0.53 (6) | *0.29 (4)* |
+| `performance` | 0.31 (11) | 0.47 (12) |
+| `login_access` | 0.80 (6) | 0.50 (7) |
+| `kyc_onboarding` | 0.78 (9) | 0.57 (5) |
+| `account_restricted` | 1.00 (5) | *0.80 (4)* |
+| `payments_transfers` | 0.55 (5) | 0.50 (7) |
+| `fees_pricing` | *0.80 (2)* | *0.33 (1)* |
+| `support_experience` | 1.00 (7) | 0.83 (11) |
+| `feature_gap` | 0.81 (23) | 0.89 (22) |
+| `complaint_unspecified` | *0.00 (1)* | *0.00 (1)* |
+| `no_complaint` | 0.83 (5) | 0.92 (6) |
+
+Confusion on validation. A cell counts reviews with that true and that
+predicted label; the diagonal (bold) is correct hits, `missed` counts true
+labels not predicted at all. Test confusion is kept in the result file only,
+so test errors do not steer changes.
+
+| True ↓ / predicted → | crash_st | performa | login_ac | kyc_onbo | account_ | payments | fees_pri | support_ | feature_ | complain | no_compl | missed |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `crash_stability` | **5** | · | 2 | · | · | 1 | · | · | 1 | · | · | 1 |
+| `performance` | 4 | **2** | 2 | · | · | 2 | 1 | 1 | 6 | · | · | 9 |
+| `login_access` | 4 | · | **6** | 1 | · | 1 | · | 1 | 1 | · | · | 0 |
+| `kyc_onboarding` | 1 | · | 4 | **7** | · | 1 | · | 3 | 2 | · | · | 2 |
+| `account_restricted` | · | · | 1 | · | **5** | 1 | · | 1 | · | · | · | 0 |
+| `payments_transfers` | · | · | · | 1 | · | **3** | · | · | 2 | · | · | 2 |
+| `fees_pricing` | · | · | · | · | · | · | **2** | · | · | · | · | 0 |
+| `support_experience` | 1 | · | 2 | 2 | 1 | 1 | · | **7** | 3 | · | · | 0 |
+| `feature_gap` | 4 | · | 2 | 1 | · | 2 | 1 | 3 | **19** | · | 1 | 4 |
+| `complaint_unspecified` | · | · | · | · | · | · | · | · | · | **0** | 1 | 1 |
+| `no_complaint` | · | · | · | · | · | · | · | · | · | · | **5** | 0 |

@@ -49,7 +49,10 @@ def run_split(model: Classifier, ids: pd.Series, texts: pd.Series, y_true: pd.Da
     for text in texts:
         start = time.perf_counter()
         labels, cost = model.classify(text)
-        latencies.append(time.perf_counter() - start)
+        elapsed = time.perf_counter() - start
+        # A model answering from its cache reports the original call's latency instead.
+        reported = getattr(model, "last_latency_s", None)
+        latencies.append(reported if reported is not None else elapsed)
         costs.append(cost)
         unknown = labels - set(LABEL_NAMES)
         if unknown:
@@ -160,13 +163,15 @@ def evaluate(
     model: Classifier, splits: dict[str, tuple[pd.Series, pd.Series, pd.DataFrame]]
 ) -> dict:
     """Score one model on each named split: (review ids, texts, gold labels) per split."""
+    scored = {name: score(run_split(model, *parts)) for name, parts in splits.items()}
     return {
         "model": model.name,
+        # Read after the run, so a model can report what the run did (e.g. API calls made).
         "config": model.config,
         "run_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "commit": git_commit(),
         "gold_fingerprint": gold_fingerprint(),
-        "splits": {name: score(run_split(model, *parts)) for name, parts in splits.items()},
+        "splits": scored,
     }
 
 

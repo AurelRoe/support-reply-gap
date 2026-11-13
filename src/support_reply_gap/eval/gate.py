@@ -32,7 +32,8 @@ from support_reply_gap.labeling.taxonomy import LABEL_NAMES
 
 # Validation, not test: a gate that failed on test would invite tuning until test passed.
 # Baseline scores 0.486; the floor leaves room for nothing but a real step back.
-VAL_MACRO_F1_FLOOR = {"baseline": 0.45}
+# The LLM's floor was set before its first run, equal to the baseline's.
+VAL_MACRO_F1_FLOOR = {"baseline": 0.45, "llm": 0.45}
 
 # Files whose change can move any model's score. Paths relative to the repo root.
 SHARED_INPUTS = (
@@ -47,6 +48,11 @@ MODEL_INPUTS = {
         "src/support_reply_gap/models/baseline.py",
         "src/support_reply_gap/models/data.py",
         "src/support_reply_gap/eval/registry.py",
+    ),
+    "llm": (
+        "src/support_reply_gap/models/llm.py",
+        "src/support_reply_gap/eval/registry.py",
+        "prompts/classify_v1.md",
     ),
 }
 

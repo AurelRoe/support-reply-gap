@@ -310,6 +310,47 @@ On validation, 7 of the 11 true `performance` reviews are predicted as
 `feature_gap`, so the baseline mostly confuses "slow" with "missing", not with
 "broken".
 
+## LLM path (stage C5)
+
+Claude Haiku 5.5 labels one review per call. The prompt
+([prompts/classify_v1.md](prompts/classify_v1.md)) holds short rules plus the
+taxonomy, rendered from the same `taxonomy.py` the gold set was labelled with,
+examples included; none of those examples is a gold review. The answer is
+constrained by a JSON schema to a list of taxonomy labels, and the same
+exclusivity rules as the baseline are applied afterwards. Effort is set to low.
+
+Haiku was chosen for cost: the larger models would have cost 20 to 40 times as
+much per run. Spending is guarded in code: a hard cap per run that stops
+before any call that could exceed it, a free token-count estimate shown before
+anything is spent, and a local answer cache keyed by model, prompt and review
+text, so a re-run of the same prompt costs nothing and reports the original
+cost and latency. The taxonomy prompt is prompt-cached across calls. The
+whole development, smoke test included, cost about one cent.
+
+| | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k | p95 latency |
+|---|---:|---:|---:|---:|
+| Human self-agreement | 0.69 | | | |
+| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | tens of ms |
+| LLM, Haiku 5.5 | 0.67 (0.57–0.80) | 0.56 (0.45–0.67) | $0.09 | about 2.5 s |
+| **LLM minus baseline, paired** | **+0.19 (+0.08 to +0.34)** | **+0.11 (+0.02 to +0.22)** | | |
+
+- The LLM is better than the baseline on both splits; both paired intervals
+  exclude 0. On test the gap is 11 points, about the size the paired
+  comparison was expected to resolve.
+- Validation sits near the human ceiling, test at about 80% of it. The prompt
+  was used as first written, with nothing chosen on validation, so the gap
+  between the two is sampling noise on 60 reviews each, not a tuning effect.
+  Test is the number to quote.
+- `performance` stays the weakest label (F1 0.31 val, 0.47 test), as for the
+  baseline and for my own self-agreement (0.25). The boundary between slow,
+  broken and missing looks fuzzy in the taxonomy itself, not only in the
+  models.
+- `complaint_unspecified` scores 0 on both splits, with one review each: not
+  interpretable.
+- The cost is speed and money: about 2.5 s per review instead of tens of
+  milliseconds, and $0.09 per 1,000 reviews instead of nothing. That trade-off
+  is what the router (C6) is for.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.

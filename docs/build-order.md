@@ -169,9 +169,17 @@ two tiers.
       below the floor; the check turned red. Requires merge commits, not
       squash merges.
 
-- [ ] **C5. LLM path with structured output.** Constrained output against the
+- [x] **C5. LLM path with structured output.** Constrained output against the
       taxonomy schema. Prompts versioned as files, not strings in code.
       *Done:* a second row in the eval table, with cost per 1k and p95 latency.
+      *Outcome:* Claude Haiku 5.5 at low effort, chosen for a budget of a few
+      cents, with prompt `prompts/classify_v1.md` (taxonomy rendered from
+      `taxonomy.py`; no gold review among its examples). Budget cap per run,
+      free estimate before spending, local answer cache. Val 0.67
+      (0.57–0.80), test 0.56 (0.45–0.67); paired difference to the baseline
+      +0.19 val, +0.11 test, both intervals excluding 0. $0.09 per 1k
+      reviews, p95 about 2.5 s. Total spend about one cent. `performance`
+      remains the weakest label, matching low human self-agreement on it.
 
 - [ ] **C6. Router.** Baseline first, escalate to the LLM below a confidence
       threshold. Calibrate on validation and plot the cost/accuracy curve — the

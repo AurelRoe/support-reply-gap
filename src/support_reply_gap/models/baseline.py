@@ -146,7 +146,7 @@ THRESHOLDS = [0.2, 0.3, 0.4, 0.5]
 
 # Picked in C1 from the grid (val macro-F1 0.486). C=30 / threshold 0.2 scored 0.489, a gap
 # 60 reviews can't resolve, so the setting inside the grid is kept over the one on its edge.
-CHOSEN = {"C": 10.0, "stop_words": "none", "word_ngrams": (1, 1), "threshold": 0.3}
+CHOSEN = {"C": 0.3, "stop_words": "none", "word_ngrams": (1, 1), "threshold": 0.3}
 
 
 def stopword_list(name: str) -> list[str] | None:

@@ -351,6 +351,53 @@ whole development, smoke test included, cost about one cent.
   milliseconds, and $0.09 per 1,000 reviews instead of nothing. That trade-off
   is what the router (C6) is for.
 
+## Router (stage C6)
+
+The baseline labels every review first. A review goes to the LLM when the
+baseline is unsure: when any label's probability sits close to its decision
+threshold (0.3). How close counts as unsure is the one setting, and sweeping it
+from "never escalate" to "always escalate" gives a cost/accuracy curve. The
+curve was computed from the LLM's cached answers, so C6 cost nothing.
+
+The rule for picking the setting was fixed before the curve was drawn: the
+smallest share of reviews sent to the LLM that reaches 90% of the LLM's gain
+over the baseline on validation.
+
+![Router: validation macro-F1 against the share of reviews sent to the LLM](reports/router_curve.png)
+
+| | Val macro-F1 | Test macro-F1 | Cost / 1k | Sent to the LLM |
+|---|---:|---:|---:|---:|
+| Baseline | 0.49 | 0.45 | $0.00 | 0% |
+| LLM | 0.67 | 0.56 | $0.09 | 100% |
+| Router | 0.66 | 0.58 | about $0.075 | 83% (99 of 120) |
+
+Paired differences on the same reviews: the router is 0.18 (val) and 0.14
+(test) above the baseline, both intervals excluding 0, and −0.01 (val) and
++0.03 (test) against the LLM alone, with the test interval only just clearing 0.
+
+- At these prices the router is barely worth it. The rule needs 85% of
+  reviews escalated, which saves 15–20% of LLM calls (about $0.015 per 1,000
+  reviews) and nothing on latency, because most reviews still wait for the
+  LLM.
+- The curve says more than the chosen point. Most of the gain comes in the
+  first half: at 50% escalated, validation is already at 0.65. The baseline's
+  uncertainty does pick the right reviews to escalate first; the last few
+  points of accuracy need almost everything escalated.
+- The router is no worse than the LLM alone. Its small edge on test sits at
+  the edge of noise and is one of several comparisons, so it is not read as
+  an improvement.
+- With 60 validation reviews, the curve is jagged (the dip at 30%) and the
+  chosen setting is itself uncertain.
+- The operating point is sensitive to the 90% target, which was a judgement
+  call. A cheaper alternative is visible on validation: at 50% escalated the
+  router reaches 0.647, 86% of the LLM's gain, at about half the LLM's cost,
+  and the curve stays flat from there to 75% (0.644–0.650), which suggests a
+  real plateau rather than one lucky point. An 85% target would have picked
+  it. It was not adopted, because it was read off the curve after the rule
+  was fixed, and choosing by eye on 60 reviews partly fits noise. Its test
+  score was not computed. The money at stake is small either way: about
+  $0.03 per 1,000 reviews.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.

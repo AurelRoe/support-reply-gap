@@ -35,4 +35,16 @@ def build_llm(gold: pd.DataFrame, max_usd: float = 0.10) -> Classifier:
     return LLMClassifier(max_usd=max_usd)
 
 
-MODELS: dict[str, Callable[..., Classifier]] = {"baseline": build_baseline, "llm": build_llm}
+def build_router(gold: pd.DataFrame, max_usd: float = 0.10) -> Classifier:
+    from support_reply_gap.models.llm import LLMClassifier
+    from support_reply_gap.models.router import ROUTER_MARGIN, RouterClassifier
+
+    # Same training data as the baseline alone, so the router differs only by escalation.
+    return RouterClassifier(*xy(gold, "train"), LLMClassifier(max_usd=max_usd), ROUTER_MARGIN)
+
+
+MODELS: dict[str, Callable[..., Classifier]] = {
+    "baseline": build_baseline,
+    "llm": build_llm,
+    "router": build_router,
+}

@@ -138,12 +138,18 @@ two tiers.
       slightly below; star rating lines up with part of that. N26 replies to
       nearly every review.
 
-- [ ] **C3. Evaluation harness.** A script, not a notebook. Model interface in,
+- [x] **C3. Evaluation harness.** A script, not a notebook. Model interface in,
       macro-F1 + per-class F1 + cost per 1k + p95 latency + confusion matrix
       out, written to a versioned file. Built *before* the LLM path so it is
       measured from the moment it exists.
       *Done:* `python -m support_reply_gap.eval --model baseline` produces the
       table.
+      *Outcome:* `reports/eval.md`, regenerated from result files in
+      `reports/eval/` that record the commit and a gold-set checksum. Added a
+      bootstrap 95% interval and exact match. Validation and test both
+      scored; only validation drives decisions. Baseline: 0.49 val
+      (0.34–0.63), 0.45 test (0.34–0.59). Open for C4: CI has no database,
+      so the gate needs the review text from somewhere else.
 
 - [ ] **C4. Eval as a CI gate.** Workflow fails if macro-F1 drops below a
       committed threshold. Cached fixtures so CI doesn't hit paid APIs.

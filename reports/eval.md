@@ -11,27 +11,27 @@ comes from resampling the split's reviews 1,000 times.
 | Model | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Test exact match | Cost / 1k reviews | p95 latency | Run |
 |---|---:|---:|---:|---:|---:|---|
 | Human self-agreement (50 reviews) | 0.69 | | 0.64 | | | ceiling |
-| baseline | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | 0.45 | $0.00 | 11 ms | 2026-11-13, `5a758d4` |
+| baseline | 0.22 (0.18–0.26) | 0.19 (0.16–0.23) | 0.00 | $0.00 | 12 ms | 2026-11-13, `0426a48` |
 
 ## baseline
 
-Settings: `{"C": 10.0, "stop_words": "none", "word_ngrams": [1, 1], "threshold": 0.3, "trained_on": 180}`
+Settings: `{"C": 0.3, "stop_words": "none", "word_ngrams": [1, 1], "threshold": 0.3, "trained_on": 180}`
 
 *Italic*: fewer than 5 examples in that split, not interpretable.
 
 | Label | Val F1 (support) | Test F1 (support) |
 |---|---:|---:|
-| `crash_stability` | 0.25 (6) | *0.40 (4)* |
-| `performance` | 0.15 (11) | 0.50 (12) |
-| `login_access` | 0.46 (6) | 0.31 (7) |
-| `kyc_onboarding` | 0.64 (9) | 0.46 (5) |
-| `account_restricted` | 0.75 (5) | *0.67 (4)* |
-| `payments_transfers` | 0.33 (5) | 0.20 (7) |
-| `fees_pricing` | *0.67 (2)* | *0.00 (1)* |
-| `support_experience` | 0.71 (7) | 0.75 (11) |
-| `feature_gap` | 0.72 (23) | 0.72 (22) |
+| `crash_stability` | 0.20 (6) | *0.12 (4)* |
+| `performance` | 0.32 (11) | 0.34 (12) |
+| `login_access` | 0.19 (6) | 0.22 (7) |
+| `kyc_onboarding` | 0.28 (9) | 0.16 (5) |
+| `account_restricted` | 0.26 (5) | *0.22 (4)* |
+| `payments_transfers` | 0.16 (5) | 0.19 (7) |
+| `fees_pricing` | *0.21 (2)* | *0.00 (1)* |
+| `support_experience` | 0.21 (7) | 0.31 (11) |
+| `feature_gap` | 0.55 (23) | 0.54 (22) |
 | `complaint_unspecified` | *0.00 (1)* | *0.00 (1)* |
-| `no_complaint` | 0.67 (5) | 0.91 (6) |
+| `no_complaint` | 0.00 (5) | 0.00 (6) |
 
 Confusion on validation. A cell counts reviews with that true and that
 predicted label; the diagonal (bold) is correct hits, `missed` counts true
@@ -40,14 +40,14 @@ so test errors do not steer changes.
 
 | True ↓ / predicted → | crash_st | performa | login_ac | kyc_onbo | account_ | payments | fees_pri | support_ | feature_ | complain | no_compl | missed |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `crash_stability` | **1** | · | 2 | 2 | · | · | · | · | 3 | · | · | 5 |
-| `performance` | 1 | **1** | 2 | 1 | · | 1 | · | · | 7 | · | · | 10 |
-| `login_access` | · | · | **3** | 2 | · | · | · | · | 3 | · | · | 3 |
-| `kyc_onboarding` | · | · | 1 | **7** | · | · | · | 1 | 2 | · | · | 2 |
-| `account_restricted` | · | · | · | 2 | **3** | · | · | 2 | · | · | · | 2 |
-| `payments_transfers` | · | · | · | 1 | · | **2** | · | 1 | 3 | · | · | 3 |
-| `fees_pricing` | · | · | · | · | · | · | **1** | · | 1 | · | · | 1 |
-| `support_experience` | · | 1 | 1 | 1 | 1 | 1 | · | **5** | 2 | · | · | 2 |
-| `feature_gap` | · | 1 | 2 | · | · | 5 | · | 2 | **19** | · | · | 4 |
-| `complaint_unspecified` | · | · | · | · | · | · | · | · | · | **0** | 1 | 1 |
-| `no_complaint` | · | · | · | · | · | · | · | · | 2 | · | **3** | 2 |
+| `crash_stability` | **5** | 6 | 6 | 6 | 3 | 5 | · | 6 | 6 | · | · | 1 |
+| `performance` | 9 | **11** | 11 | 9 | 5 | 11 | 2 | 11 | 11 | · | · | 0 |
+| `login_access` | 6 | 6 | **6** | 6 | 4 | 6 | · | 6 | 6 | · | · | 0 |
+| `kyc_onboarding` | 7 | 9 | 9 | **9** | 7 | 9 | 2 | 9 | 9 | · | · | 0 |
+| `account_restricted` | 5 | 5 | 5 | 5 | **5** | 5 | 3 | 5 | 5 | · | · | 0 |
+| `payments_transfers` | 4 | 5 | 5 | 4 | 4 | **5** | 2 | 5 | 5 | · | · | 0 |
+| `fees_pricing` | 2 | 2 | 2 | 2 | 1 | 2 | **2** | 2 | 2 | · | · | 0 |
+| `support_experience` | 5 | 7 | 7 | 7 | 6 | 7 | 4 | **7** | 7 | · | · | 0 |
+| `feature_gap` | 18 | 21 | 23 | 22 | 7 | 22 | 4 | 23 | **23** | · | · | 0 |
+| `complaint_unspecified` | · | 1 | 1 | 1 | · | 1 | · | · | 1 | **0** | · | 1 |
+| `no_complaint` | 1 | 5 | 3 | 4 | 4 | 3 | 2 | 5 | 5 | · | **0** | 5 |

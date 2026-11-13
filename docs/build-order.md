@@ -85,7 +85,7 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       — too rare, and trading is Revolut-only. The 150 reviews are excluded
       from the gold set.
 
-- [ ] **B5. Hand-label the gold set.** ~400 reviews, stratified across apps and
+- [x] **B5. Hand-label the gold set.** ~400 reviews, stratified across apps and
       weighted toward 1–2★ — not random, which over-samples 1★/5★ noise and
       under-samples rare classes. 400 rather than 300 because eleven labels
       against 300 reviews leaves too many classes under 20 examples; the
@@ -99,15 +99,14 @@ No data, no models. A repo that runs, tests, and deploys *something*.
       The test split is held out at this point and stays unseen until the end.
       *Done:* labelled CSV committed, train/val/test split, self-agreement
       recorded.
-      *Outcome so far:* drawn at 400, then trimmed to 300 before labelling to
+      *Outcome:* drawn at 400, then trimmed to 300 before labelling to
       keep hand-labelling time manageable, balanced within each split, app
       and star rating. This accepts more classes under 20 examples; they are
-      flagged in the eval, not merged. A first labelling pass made with Claude
-      was discarded so that the LLM path is not scored against LLM labels.
+      flagged in the eval, not merged.
       All 300 then hand-labelled and `gold_labels.csv` committed.
       `complaint_unspecified` (12) and `fees_pricing` (10) are under 20, with
-      one test review each; the frozen split is kept. Self-agreement still
-      open.
+      one test review each; the frozen split is kept. Self-agreement on 50
+      random reviews: 0.69 macro-F1, 64% exact match.
 
 ---
 
@@ -117,11 +116,14 @@ Two model paths, not three: cheap and expensive, with a measured trade-off
 between them. That is the whole comparison story, and the router needs exactly
 two tiers.
 
-- [ ] **C1. Baseline: TF-IDF + logistic regression.** German stopwords;
+- [x] **C1. Baseline: TF-IDF + logistic regression.** German stopwords;
       character n-grams worth trying for compound words.
       *Done:* a macro-F1 on validation. This is the bar.
+      *Outcome:* 0.486 validation macro-F1 (C = 10, no stopwords, single
+      words plus character n-grams, threshold 0.3), about 70% of the 0.69
+      self-agreement ceiling. German stopwords and word pairs did not help.
 
-- [ ] **C2. First end-to-end answer** ← *milestone*
+- [x] **C2. First end-to-end answer** ← *milestone*
       Baseline over all reviews, joined to reply data. Mismatch table: complaint
       volume by category vs reply rate and median latency by category.
       Numbers will be mediocre. The point is that the finding now exists and
@@ -129,6 +131,12 @@ two tiers.
       *Done:* one table, one chart, three sentences of honest interpretation.
       No causal language — companies choose who to reply to and that choice is
       unobserved.
+      *Outcome:* `reports/reply_gap_c2.md`, limited to 1–3★ (1,210 reviews)
+      because the baseline puts complaint labels on about half of all 5★
+      reviews. Within C24 and Revolut, `support_experience` and the account
+      labels sit above the app's reply rate, `feature_gap` and `performance`
+      slightly below; star rating lines up with part of that. N26 replies to
+      nearly every review.
 
 - [ ] **C3. Evaluation harness.** A script, not a notebook. Model interface in,
       macro-F1 + per-class F1 + cost per 1k + p95 latency + confusion matrix

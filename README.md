@@ -177,10 +177,16 @@ to meaningless, so they are flagged in the eval rather than merged. The split
 was stratified on the earlier pass's labels, not these. Redrawing it now would mean
 choosing the test set after seeing its labels, so it stays.
 
-**Self-agreement (pending).** 50 of the 300 will be labelled a second time,
-blind and days after the first pass. Scoring the second pass against the first
-with the same macro-F1 used for the models gives the realistic ceiling for any
-model.
+**Self-agreement.** 50 of the 300, picked at random, were labelled a second
+time, blind and days after the first pass
+([reports/self_agreement.md](reports/self_agreement.md)). Scored against the
+first pass with the same macro-F1 used for the models, agreement is **0.69
+macro-F1**, and 64% of reviews get exactly the same label set. That is the
+realistic ceiling for any model. Agreement is lowest for `performance` (F1
+0.25) and `crash_stability` (0.50): the line between slow and broken is the
+least stable boundary in the taxonomy. `fees_pricing` does not occur among the
+50, so the macro average covers ten labels, and five of those have fewer than
+5 examples.
 
 ## Baseline (stage C1)
 
@@ -197,8 +203,12 @@ single words, threshold 0.3.
 | | Macro-F1 |
 |---|---:|
 | Baseline, validation (60 reviews) | 0.486 |
-| Human self-agreement (50 reviews) | pending |
+| Human self-agreement (50 reviews) | 0.69 |
 
+- The baseline reaches about 70% of the human ceiling (0.486 vs. 0.69).
+- The two labels the baseline handles worst, `performance` and
+  `crash_stability`, are also the two where my own labels agree least. Part of
+  its weakness there is a fuzzy boundary, not only a weak model.
 - Neither German stopwords nor word pairs helped. The character n-grams
   probably already cover what they would add.
 - `performance` (F1 0.15) and `crash_stability` (0.25) are rarely predicted:

@@ -187,6 +187,21 @@ def fit_chosen(texts: pd.Series, y: pd.DataFrame) -> Pipeline:
     )
 
 
+class BaselineClassifier:
+    """The baseline behind the harness interface: one review in, labels and cost out."""
+
+    name = "baseline"
+
+    def __init__(self, texts: pd.Series, y: pd.DataFrame) -> None:
+        self.model = fit_chosen(texts, y)
+        self.config = {**CHOSEN, "trained_on": len(texts)}
+
+    def classify(self, text: str) -> tuple[set[str], float]:
+        pred = predict(self.model, pd.Series([text]), CHOSEN["threshold"])
+        # Runs locally, so no per-call charge; compute time shows up in latency instead.
+        return {name for name in LABEL_NAMES if pred.loc[0, name] == 1}, 0.0
+
+
 def main() -> None:
     gold = load_gold()
     results = tune(gold)

@@ -117,3 +117,12 @@ def test_both_exclusive_labels_keep_the_more_likely():
 def test_exclusive_label_alone_is_kept():
     pred = to_labels(proba_row(complaint_unspecified=0.3))
     assert labels_of(pred) == {"complaint_unspecified"}
+
+
+def test_classifier_returns_taxonomy_labels_and_no_cost():
+    from support_reply_gap.models.baseline import BaselineClassifier
+
+    texts, y = toy_train()
+    labels, cost = BaselineClassifier(texts, y).classify(texts[0])
+    assert labels and labels <= set(LABEL_NAMES)
+    assert cost == 0.0

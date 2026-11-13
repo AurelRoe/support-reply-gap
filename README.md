@@ -248,6 +248,39 @@ half of all 5★ reviews, which is implausible. The labels come from a model at
 0.49 validation macro-F1, so these numbers are a starting point, not the
 result.
 
+## Evaluation (stage C3)
+
+Every model is scored by one harness against the frozen gold set, and the
+results land in [reports/eval.md](reports/eval.md). The harness was built
+before the LLM path, so the LLM is measured by a yardstick that existed before
+it did.
+
+- **Interface.** A model provides one call: one review in, labels and the cost
+  of the call out. Reviews are classified one at a time, as the API and the
+  router will call it, so the latency is per review.
+- **Measures.** Macro-F1 with a 95% interval (from resampling the split's
+  reviews 1,000 times), per-class F1 with support, exact match, cost per 1,000
+  reviews, p95 latency, and a label × label confusion matrix.
+- **Validation and test.** Both are scored. Validation drives decisions
+  (thresholds, prompts). Test is reported and never used to choose anything,
+  and its confusion matrix stays out of the table so its errors do not steer
+  changes.
+- **Versioning.** Each run writes a result file to
+  [reports/eval/](reports/eval/) with the commit and a checksum of the gold
+  labels and split, so results measured against a different gold set are
+  flagged instead of compared.
+
+| | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k | p95 latency |
+|---|---:|---:|---:|---:|
+| Human self-agreement | 0.69 | | | |
+| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | 14 ms |
+
+The intervals are wide: with 60 reviews per split, a second model has to beat
+the baseline by a clear margin before the table can tell them apart. On
+validation, 7 of the 11 true `performance` reviews are predicted as
+`feature_gap`, so the baseline mostly confuses "slow" with "missing", not with
+"broken".
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.
@@ -268,6 +301,7 @@ Needs Python 3.11+ and Docker.
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
+python -m nltk.downloader stopwords
 
 # Start Postgres (fill in .env first)
 cp .env.example .env
@@ -275,6 +309,9 @@ docker compose up -d
 
 # Run all tests, including the database ones
 pytest
+
+# Score the baseline and rebuild reports/eval.md (needs the database)
+python -m support_reply_gap.eval --model baseline
 
 # Run the API on http://localhost:8000/health
 docker build -t support-reply-gap .

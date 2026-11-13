@@ -1,0 +1,512 @@
+{
+  "model": "baseline",
+  "config": {
+    "C": 10.0,
+    "stop_words": "none",
+    "word_ngrams": [
+      1,
+      1
+    ],
+    "threshold": 0.3,
+    "trained_on": 180
+  },
+  "run_at": "2026-11-13T10:57:17+00:00",
+  "commit": "7734665-dirty",
+  "gold_fingerprint": "c9be9b7c5513",
+  "splits": {
+    "val": {
+      "n": 60,
+      "macro_f1": 0.48633470588873684,
+      "macro_f1_ci95": [
+        0.34205122067880805,
+        0.6272702591122314
+      ],
+      "exact_match": 0.4166666666666667,
+      "cost_per_1k_usd": 0.0,
+      "latency_p95_ms": 15.253335794841398,
+      "latency_median_ms": 9.333428504760377,
+      "per_class": [
+        {
+          "label": "crash_stability",
+          "f1": 0.25,
+          "support": 6,
+          "predicted": 2,
+          "few_examples": false
+        },
+        {
+          "label": "performance",
+          "f1": 0.15384615384615385,
+          "support": 11,
+          "predicted": 2,
+          "few_examples": false
+        },
+        {
+          "label": "login_access",
+          "f1": 0.46153846153846156,
+          "support": 6,
+          "predicted": 7,
+          "few_examples": false
+        },
+        {
+          "label": "kyc_onboarding",
+          "f1": 0.6363636363636364,
+          "support": 9,
+          "predicted": 13,
+          "few_examples": false
+        },
+        {
+          "label": "account_restricted",
+          "f1": 0.75,
+          "support": 5,
+          "predicted": 3,
+          "few_examples": false
+        },
+        {
+          "label": "payments_transfers",
+          "f1": 0.3333333333333333,
+          "support": 5,
+          "predicted": 7,
+          "few_examples": false
+        },
+        {
+          "label": "fees_pricing",
+          "f1": 0.6666666666666666,
+          "support": 2,
+          "predicted": 1,
+          "few_examples": true
+        },
+        {
+          "label": "support_experience",
+          "f1": 0.7142857142857143,
+          "support": 7,
+          "predicted": 7,
+          "few_examples": false
+        },
+        {
+          "label": "feature_gap",
+          "f1": 0.7169811320754716,
+          "support": 23,
+          "predicted": 30,
+          "few_examples": false
+        },
+        {
+          "label": "complaint_unspecified",
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 0,
+          "few_examples": true
+        },
+        {
+          "label": "no_complaint",
+          "f1": 0.6666666666666666,
+          "support": 5,
+          "predicted": 4,
+          "few_examples": false
+        }
+      ],
+      "confusion": {
+        "crash_stability": {
+          "crash_stability": 1,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 2,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 5
+        },
+        "performance": {
+          "crash_stability": 1,
+          "performance": 1,
+          "login_access": 2,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 7,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 10
+        },
+        "login_access": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 3,
+          "kyc_onboarding": 2,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 3
+        },
+        "kyc_onboarding": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 1,
+          "kyc_onboarding": 7,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "account_restricted": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 2,
+          "account_restricted": 3,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 2,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "payments_transfers": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 1,
+          "account_restricted": 0,
+          "payments_transfers": 2,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 3
+        },
+        "fees_pricing": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 1,
+          "support_experience": 0,
+          "feature_gap": 1,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "support_experience": {
+          "crash_stability": 0,
+          "performance": 1,
+          "login_access": 1,
+          "kyc_onboarding": 1,
+          "account_restricted": 1,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 5,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "feature_gap": {
+          "crash_stability": 0,
+          "performance": 1,
+          "login_access": 2,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 5,
+          "fees_pricing": 0,
+          "support_experience": 2,
+          "feature_gap": 19,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 4
+        },
+        "complaint_unspecified": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 1,
+          "missed": 1
+        },
+        "no_complaint": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 3,
+          "missed": 2
+        }
+      }
+    },
+    "test": {
+      "n": 60,
+      "macro_f1": 0.44654267973307427,
+      "macro_f1_ci95": [
+        0.3400244124769088,
+        0.5867466339034967
+      ],
+      "exact_match": 0.45,
+      "cost_per_1k_usd": 0.0,
+      "latency_p95_ms": 10.243444897787413,
+      "latency_median_ms": 8.753347494348418,
+      "per_class": [
+        {
+          "label": "crash_stability",
+          "f1": 0.4,
+          "support": 4,
+          "predicted": 1,
+          "few_examples": true
+        },
+        {
+          "label": "performance",
+          "f1": 0.5,
+          "support": 12,
+          "predicted": 4,
+          "few_examples": false
+        },
+        {
+          "label": "login_access",
+          "f1": 0.3076923076923077,
+          "support": 7,
+          "predicted": 6,
+          "few_examples": false
+        },
+        {
+          "label": "kyc_onboarding",
+          "f1": 0.46153846153846156,
+          "support": 5,
+          "predicted": 8,
+          "few_examples": false
+        },
+        {
+          "label": "account_restricted",
+          "f1": 0.6666666666666666,
+          "support": 4,
+          "predicted": 5,
+          "few_examples": true
+        },
+        {
+          "label": "payments_transfers",
+          "f1": 0.2,
+          "support": 7,
+          "predicted": 3,
+          "few_examples": false
+        },
+        {
+          "label": "fees_pricing",
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 0,
+          "few_examples": true
+        },
+        {
+          "label": "support_experience",
+          "f1": 0.75,
+          "support": 11,
+          "predicted": 13,
+          "few_examples": false
+        },
+        {
+          "label": "feature_gap",
+          "f1": 0.7169811320754716,
+          "support": 22,
+          "predicted": 31,
+          "few_examples": false
+        },
+        {
+          "label": "complaint_unspecified",
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 1,
+          "few_examples": true
+        },
+        {
+          "label": "no_complaint",
+          "f1": 0.9090909090909091,
+          "support": 6,
+          "predicted": 5,
+          "few_examples": false
+        }
+      ],
+      "confusion": {
+        "crash_stability": {
+          "crash_stability": 1,
+          "performance": 1,
+          "login_access": 1,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 3
+        },
+        "performance": {
+          "crash_stability": 0,
+          "performance": 4,
+          "login_access": 3,
+          "kyc_onboarding": 2,
+          "account_restricted": 0,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 4,
+          "feature_gap": 7,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 8
+        },
+        "login_access": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 2,
+          "account_restricted": 1,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 2,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 5
+        },
+        "kyc_onboarding": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 2,
+          "kyc_onboarding": 3,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 2,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "account_restricted": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 1,
+          "account_restricted": 3,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 2,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "payments_transfers": {
+          "crash_stability": 0,
+          "performance": 1,
+          "login_access": 1,
+          "kyc_onboarding": 2,
+          "account_restricted": 1,
+          "payments_transfers": 1,
+          "fees_pricing": 0,
+          "support_experience": 3,
+          "feature_gap": 3,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 6
+        },
+        "fees_pricing": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 1,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "support_experience": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 2,
+          "account_restricted": 1,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 9,
+          "feature_gap": 4,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 2
+        },
+        "feature_gap": {
+          "crash_stability": 0,
+          "performance": 1,
+          "login_access": 0,
+          "kyc_onboarding": 2,
+          "account_restricted": 0,
+          "payments_transfers": 2,
+          "fees_pricing": 0,
+          "support_experience": 1,
+          "feature_gap": 19,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 3
+        },
+        "complaint_unspecified": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 0,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 1,
+          "complaint_unspecified": 0,
+          "no_complaint": 0,
+          "missed": 1
+        },
+        "no_complaint": {
+          "crash_stability": 0,
+          "performance": 0,
+          "login_access": 0,
+          "kyc_onboarding": 0,
+          "account_restricted": 1,
+          "payments_transfers": 0,
+          "fees_pricing": 0,
+          "support_experience": 0,
+          "feature_gap": 0,
+          "complaint_unspecified": 0,
+          "no_complaint": 5,
+          "missed": 1
+        }
+      }
+    }
+  }
+}

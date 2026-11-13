@@ -155,9 +155,19 @@ two tiers.
       about a 10-point gap is resolvable. Open for C4: CI has no database,
       so the gate needs the review text from somewhere else.
 
-- [ ] **C4. Eval as a CI gate.** Workflow fails if macro-F1 drops below a
+- [x] **C4. Eval as a CI gate.** Workflow fails if macro-F1 drops below a
       committed threshold. Cached fixtures so CI doesn't hit paid APIs.
       *Done:* a PR that degrades the model turns the check red.
+      *Outcome:* instead of cached fixtures, CI checks the committed result
+      files: models are scored locally, where the review text is, and
+      `--gate` fails if a result is stale (a score-relevant file changed
+      after it), made from uncommitted code, inconsistent with its stored
+      predictions, below the validation floor (baseline 0.45), or if
+      `reports/eval.md` is out of date. No review text on GitHub, no API
+      calls in CI. Shown on a throwaway PR with C = 0.3: the gate first
+      flagged the stale result, then, after a re-run, val macro-F1 0.217
+      below the floor; the check turned red. Requires merge commits, not
+      squash merges.
 
 - [ ] **C5. LLM path with structured output.** Constrained output against the
       taxonomy schema. Prompts versioned as files, not strings in code.

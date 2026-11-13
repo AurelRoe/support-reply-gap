@@ -3,39 +3,21 @@
     python -m support_reply_gap.eval --model baseline
     python -m support_reply_gap.eval --report-only     # rebuild reports/eval.md
     python -m support_reply_gap.eval --compare llm baseline   # paired difference
+    python -m support_reply_gap.eval --gate            # CI: check committed results
 
-Scoring a model needs Postgres for the review text; --report-only and --compare
-read only committed files.
+Scoring a model needs Postgres for the review text; --report-only, --compare and
+--gate read only committed files.
 """
 
 from __future__ import annotations
 
 import argparse
-from collections.abc import Callable
-
-import pandas as pd
 
 from support_reply_gap.eval import report
 from support_reply_gap.eval.compare import paired_difference
-from support_reply_gap.eval.harness import Classifier, evaluate, save
-from support_reply_gap.models.data import load_gold, xy
-
-
-def split_inputs(gold: pd.DataFrame, split: str) -> tuple[pd.Series, pd.Series, pd.DataFrame]:
-    """Review ids, texts and gold labels for one split, in the same row order."""
-    texts, y = xy(gold, split)
-    ids = gold.loc[gold["split"] == split, "review_id"].reset_index(drop=True)
-    return ids, texts, y
-
-
-def build_baseline(gold: pd.DataFrame) -> Classifier:
-    from support_reply_gap.models.baseline import BaselineClassifier
-
-    # Train only: validation stays unseen so its score means what it meant in C1.
-    return BaselineClassifier(*xy(gold, "train"))
-
-
-MODELS: dict[str, Callable[[pd.DataFrame], Classifier]] = {"baseline": build_baseline}
+from support_reply_gap.eval.harness import evaluate, save
+from support_reply_gap.eval.registry import MODELS, split_inputs
+from support_reply_gap.models.data import load_gold
 
 
 def main() -> None:
@@ -43,9 +25,21 @@ def main() -> None:
     parser.add_argument("--model", choices=sorted(MODELS))
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--compare", nargs=2, metavar=("A", "B"))
+    parser.add_argument("--gate", action="store_true")
     args = parser.parse_args()
-    if not (args.model or args.report_only or args.compare):
-        parser.error("give --model, --report-only or --compare")
+    if not (args.model or args.report_only or args.compare or args.gate):
+        parser.error("give --model, --report-only, --compare or --gate")
+
+    if args.gate:
+        from support_reply_gap.eval.gate import run_gate
+
+        problems = run_gate()
+        for problem in problems:
+            print(f"FAIL {problem}")
+        if problems:
+            raise SystemExit(1)
+        print("eval gate passed")
+        return
 
     if args.compare:
         compare(*args.compare)

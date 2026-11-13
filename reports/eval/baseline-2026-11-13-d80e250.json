@@ -10,8 +10,8 @@
     "threshold": 0.3,
     "trained_on": 180
   },
-  "run_at": "2026-11-13T11:00:57+00:00",
-  "commit": "d2e7fc4-dirty",
+  "run_at": "2026-11-13T11:02:33+00:00",
+  "commit": "d80e250",
   "gold_fingerprint": "c9be9b7c5513",
   "splits": {
     "val": {
@@ -23,8 +23,8 @@
       ],
       "exact_match": 0.4166666666666667,
       "cost_per_1k_usd": 0.0,
-      "latency_p95_ms": 12.78116005123593,
-      "latency_median_ms": 9.718388500914443,
+      "latency_p95_ms": 14.983285399648592,
+      "latency_median_ms": 9.564945998135954,
       "per_class": [
         {
           "label": "crash_stability",
@@ -270,8 +270,8 @@
       ],
       "exact_match": 0.45,
       "cost_per_1k_usd": 0.0,
-      "latency_p95_ms": 11.698836451978423,
-      "latency_median_ms": 8.944389497628435,
+      "latency_p95_ms": 12.713349453406408,
+      "latency_median_ms": 9.422242001164705,
       "per_class": [
         {
           "label": "crash_stability",

@@ -181,11 +181,18 @@ two tiers.
       reviews, p95 about 2.5 s. Total spend about one cent. `performance`
       remains the weakest label, matching low human self-agreement on it.
 
-- [ ] **C6. Router.** Baseline first, escalate to the LLM below a confidence
+- [x] **C6. Router.** Baseline first, escalate to the LLM below a confidence
       threshold. Calibrate on validation and plot the cost/accuracy curve — the
       curve is more interesting than any single operating point, and it's the
       part that reads as engineering judgement rather than model shopping.
       *Done:* a third row plus the trade-off curve.
+      *Outcome:* confidence is the baseline's smallest distance between a label
+      probability and the threshold. Operating rule fixed before the sweep:
+      smallest escalation share reaching 90% of the LLM's validation gain. It
+      lands at 85% escalated (83% across val and test): val 0.66, test 0.58,
+      about $0.075 per 1k, no latency gain. No worse than the LLM alone; most
+      of the gain arrives by 50% escalated. At $0.09 per 1k for the LLM, the
+      router is barely worth its complexity. Cost $0, all from cached answers.
 
 ---
 

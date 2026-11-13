@@ -1,5 +1,7 @@
 """Tests for rendering the eval table. Hand-made result dicts; no database."""
 
+import pandas as pd
+
 from support_reply_gap.eval.report import latest_per_model, render
 from support_reply_gap.labeling.taxonomy import LABEL_NAMES
 
@@ -55,3 +57,9 @@ def test_result_from_another_gold_set_is_flagged():
 def test_small_classes_are_italic():
     text = render([result("baseline", "2026-11-13", 0.49)], HUMAN, "abc")
     assert "| `fees_pricing` | *0.50 (3)* | *0.50 (3)* |" in text
+
+
+def test_difference_table_only_appears_with_a_second_model():
+    from support_reply_gap.eval.report import difference_table
+
+    assert difference_table([result("baseline", "2026-11-13", 0.49)], pd.DataFrame()) == []

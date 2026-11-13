@@ -43,7 +43,7 @@ class Classifier(Protocol):
         ...
 
 
-def run_split(model: Classifier, texts: pd.Series, y_true: pd.DataFrame) -> dict:
+def run_split(model: Classifier, ids: pd.Series, texts: pd.Series, y_true: pd.DataFrame) -> dict:
     """Classify each review on its own, timing every call. Returns raw predictions."""
     rows, latencies, costs = [], [], []
     for text in texts:
@@ -57,6 +57,7 @@ def run_split(model: Classifier, texts: pd.Series, y_true: pd.DataFrame) -> dict
         rows.append({name: int(name in labels) for name in LABEL_NAMES})
     y_pred = pd.DataFrame(rows, columns=list(LABEL_NAMES))
     return {
+        "ids": list(ids),
         "y_true": y_true.reset_index(drop=True),
         "y_pred": y_pred,
         "latency_s": latencies,
@@ -120,6 +121,12 @@ def score(run: dict) -> dict:
         "latency_median_ms": 1000 * float(np.median(run["latency_s"])),
         "per_class": per_class.reset_index().to_dict(orient="records"),
         "confusion": confusion(y_true, y_pred).to_dict(orient="index"),
+        # Per review, so two models can be compared on the same reviews (paired bootstrap).
+        # Ids and labels only, no text, like data/gold/.
+        "predictions": {
+            rid: [name for name in LABEL_NAMES if row[name]]
+            for rid, (_, row) in zip(run["ids"], y_pred.iterrows(), strict=True)
+        },
     }
 
 
@@ -142,20 +149,24 @@ def git_commit() -> str:
 
     try:
         commit = git("rev-parse", "--short", "HEAD")
-        return commit + ("-dirty" if git("status", "--porcelain", "--untracked-files=no") else "")
+        # reports/ holds the harness's own output, which cannot change a result.
+        changes = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":!reports")
+        return commit + ("-dirty" if changes else "")
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
 
 
-def evaluate(model: Classifier, splits: dict[str, tuple[pd.Series, pd.DataFrame]]) -> dict:
-    """Score one model on each named split and wrap it with what identifies the run."""
+def evaluate(
+    model: Classifier, splits: dict[str, tuple[pd.Series, pd.Series, pd.DataFrame]]
+) -> dict:
+    """Score one model on each named split: (review ids, texts, gold labels) per split."""
     return {
         "model": model.name,
         "config": model.config,
         "run_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "commit": git_commit(),
         "gold_fingerprint": gold_fingerprint(),
-        "splits": {name: score(run_split(model, x, y)) for name, (x, y) in splits.items()},
+        "splits": {name: score(run_split(model, *parts)) for name, parts in splits.items()},
     }
 
 

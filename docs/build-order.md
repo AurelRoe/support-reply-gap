@@ -148,7 +148,11 @@ two tiers.
       `reports/eval/` that record the commit and a gold-set checksum. Added a
       bootstrap 95% interval and exact match. Validation and test both
       scored; only validation drives decisions. Baseline: 0.49 val
-      (0.34–0.63), 0.45 test (0.34–0.59). Open for C4: CI has no database,
+      (0.34–0.63), 0.45 test (0.34–0.59). Follow-up: paired bootstrap of the
+      difference to the baseline, from per-review predictions in the result
+      files. Measured on baseline variants, it is 1.7–4.5× narrower than
+      comparing separate intervals; against a model with different errors,
+      about a 10-point gap is resolvable. Open for C4: CI has no database,
       so the gate needs the review text from somewhere else.
 
 - [ ] **C4. Eval as a CI gate.** Workflow fails if macro-F1 drops below a

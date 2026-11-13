@@ -40,11 +40,12 @@ def frame(label_sets: list[set[str]]) -> pd.DataFrame:
 
 TRUTH = [{"login_access"}, {"performance"}, {"feature_gap", "support_experience"}, {"no_complaint"}]
 TEXTS = pd.Series([f"review {i}" for i in range(len(TRUTH))])
+IDS = pd.Series([f"id{i}" for i in range(len(TRUTH))])
 
 
 def test_perfect_model_scores_one():
     model = FakeClassifier(dict(zip(TEXTS, TRUTH)))
-    s = score(run_split(model, TEXTS, frame(TRUTH)))
+    s = score(run_split(model, IDS, TEXTS, frame(TRUTH)))
     assert s["macro_f1"] == 1.0
     assert s["macro_f1_ci95"] == [1.0, 1.0]
     assert s["exact_match"] == 1.0
@@ -52,19 +53,21 @@ def test_perfect_model_scores_one():
 
 def test_cost_is_scaled_to_1000_reviews():
     model = FakeClassifier(dict(zip(TEXTS, TRUTH)), cost=0.002)
-    assert score(run_split(model, TEXTS, frame(TRUTH)))["cost_per_1k_usd"] == pytest.approx(2.0)
+    assert score(run_split(model, IDS, TEXTS, frame(TRUTH)))["cost_per_1k_usd"] == pytest.approx(
+        2.0
+    )
 
 
 def test_latency_is_measured():
     model = FakeClassifier(dict(zip(TEXTS, TRUTH)))
-    s = score(run_split(model, TEXTS, frame(TRUTH)))
+    s = score(run_split(model, IDS, TEXTS, frame(TRUTH)))
     assert s["latency_p95_ms"] >= 0
 
 
 def test_labels_outside_the_taxonomy_are_rejected():
     model = FakeClassifier({t: {"made_up_label"} for t in TEXTS})
     with pytest.raises(ValueError, match="outside the taxonomy"):
-        run_split(model, TEXTS, frame(TRUTH))
+        run_split(model, IDS, TEXTS, frame(TRUTH))
 
 
 def test_fast_macro_f1_matches_the_shared_metric():
@@ -107,9 +110,16 @@ def test_fingerprint_changes_with_the_gold_files(tmp_path):
 
 def test_saved_result_is_readable_json(tmp_path):
     model = FakeClassifier(dict(zip(TEXTS, TRUTH)))
-    result = evaluate(model, {"val": (TEXTS, frame(TRUTH))})
+    result = evaluate(model, {"val": (IDS, TEXTS, frame(TRUTH))})
     path = save(result, tmp_path)
     loaded = json.loads(path.read_text())
     assert loaded["model"] == "fake"
     assert loaded["splits"]["val"]["macro_f1"] == 1.0
     assert path.name.startswith("fake-")
+
+
+def test_predictions_are_stored_per_review_id():
+    model = FakeClassifier(dict(zip(TEXTS, TRUTH)))
+    preds = score(run_split(model, IDS, TEXTS, frame(TRUTH)))["predictions"]
+    assert preds["id0"] == ["login_access"]
+    assert preds["id2"] == ["support_experience", "feature_gap"]  # taxonomy order

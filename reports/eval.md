@@ -11,7 +11,7 @@ comes from resampling the split's reviews 1,000 times.
 | Model | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Test exact match | Cost / 1k reviews | p95 latency | Run |
 |---|---:|---:|---:|---:|---:|---|
 | Human self-agreement (50 reviews) | 0.69 | | 0.64 | | | ceiling |
-| baseline | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | 0.45 | $0.00 | 10 ms | 2026-11-13, `7734665-dirty` |
+| baseline | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | 0.45 | $0.00 | 12 ms | 2026-11-13, `d2e7fc4-dirty` |
 
 ## baseline
 

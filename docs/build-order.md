@@ -201,6 +201,21 @@ two tiers.
 - [ ] **D1. Final analysis.** Redo C2 with the best configuration. Sample sizes
       per cell at minimum. State null results plainly.
 
+- [ ] **D1b. Side analysis: ratings around the reply-policy changes.** N26
+      started replying in 2025Q2, C24 in 2026Q1, Revolut's policy stayed the
+      same; Revolut is a reference series, not a control. Monthly mean score,
+      share of 1★, review volume and reply rate per app, from 2024-11, with a
+      line at each app's change date. Descriptive only: the companies chose
+      when to change, and other things change with it.
+      Traps: Google Play keeps only a review's latest version, and replies
+      prompt edits, so after a change some reviews are re-dated and re-scored.
+      Show every series with and without reviews flagged as edited, and say
+      that edits are only detectable when there is a reply. Never use the
+      edited share as an outcome: more replies mechanically mean more
+      detectable edits. N26's before-period is only 5 months; drop the
+      incomplete last month.
+      *Done:* one chart, a short README section after C2, a pointer from B1.
+
 - [ ] **D2. FastAPI service.** Replace the A4 stub: `/classify` over the router,
       reading from Postgres.
 

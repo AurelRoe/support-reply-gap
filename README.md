@@ -7,13 +7,18 @@ and how fast? This repo classifies Google Play reviews into complaint
 categories and joins them to reply data. The result is a descriptive table:
 reply rate and median reply latency per complaint type.
 
-**Status:** Phase A (skeleton) is done. Phase B is nearly done: the three apps
-are chosen (see [App selection](#app-selection-stage-b1)), their reviews are
-ingested (see [Data](#data)), the label taxonomy is set (see
-[Taxonomy](#taxonomy-stage-b4)) and 300 reviews are sampled, split and
-hand-labelled (see [Gold set](#gold-set-stage-b5)). The self-agreement
-measurement is still open. There are no models or findings yet. The full plan is in
-[docs/build-order.md](docs/build-order.md).
+**Status:** Phases A to C are done and the final analysis (D1) is in. Three
+German neobanks were chosen by measured reply rate (see
+[App selection](#app-selection-stage-b1)), 300 reviews were hand-labelled into
+eleven labels (see [Gold set](#gold-set-stage-b5)), and three classifiers were
+scored against them: a TF-IDF baseline, an LLM and a router between the two
+(see [eval table](reports/eval.md)). The LLM's labels give the final answer in
+[Final analysis](#final-analysis-stage-d1): at Revolut, reviews about support,
+identity verification and login receive replies more often than their star
+ratings predict, and short subjectless complaints far less often; most other
+label differences are not detectable. Still open: a side analysis of ratings
+around the reply-policy changes (D1b), the `/classify` API (D2) and a final
+README pass (D3). The full plan is in [docs/build-order.md](docs/build-order.md).
 
 ## Approach
 
@@ -246,7 +251,7 @@ N26, 23 minutes at Revolut) than between labels within an app.
 4–5★ reviews are left out because the baseline puts complaint labels on about
 half of all 5★ reviews, which is implausible. The labels come from a model at
 0.49 validation macro-F1, so these numbers are a starting point, not the
-result.
+result. The result is in [Final analysis](#final-analysis-stage-d1).
 
 ## Evaluation (stage C3)
 
@@ -398,16 +403,135 @@ Paired differences on the same reviews: the router is 0.18 (val) and 0.14
   score was not computed. The money at stake is small either way: about
   $0.03 per 1,000 reviews.
 
+## Final analysis (stage D1)
+
+C2 redone with the LLM, the model with the highest validation macro-F1 (0.67,
+against 0.66 for the router, a gap within noise). Same population: 1,210
+Google Play reviews rated 1–3★, posted 2026-04-01 to 2026-11-02. Labelling them
+cost $0.10. Tables, chart and caveats are in
+[reports/reply_gap_d1.md](reports/reply_gap_d1.md).
+
+The rules were written into [docs/build-order.md](docs/build-order.md) before a
+single review in the population was labelled:
+
+- **Star adjustment.** C2 showed that 1★ reviews receive replies more often
+  than 2★ and 3★, so a label made mostly of 1★ reviews looks well answered for
+  that reason alone. Each label's reply rate is therefore compared with an
+  expected rate: the app's reply rate per star rating, weighted by the label's
+  own mix of 1★, 2★ and 3★.
+- **What counts as a finding.** At least 30 reviews, and a 95% bootstrap
+  interval of observed minus expected that excludes 0. Everything else is
+  "no difference detected".
+- **Within apps only.** N26 replies to 99% of these reviews, so its reply rate
+  cannot separate labels; it is compared on latency only.
+
+![Reply rate by complaint label, adjusted for star rating](reports/reply_gap_d1.png)
+
+**Findings.** Five of the 14 cells large enough to read meet the rule:
+
+| App · label | Replied | Expected | Difference, points (95% CI) | Reviews |
+|---|---:|---:|---:|---:|
+| Revolut · `kyc_onboarding` | 94% | 76% | +18 (+13 to +23) | 132 |
+| Revolut · `support_experience` | 91% | 77% | +15 (+10 to +19) | 147 |
+| Revolut · `login_access` | 86% | 75% | +11 (+3 to +18) | 72 |
+| C24 · `crash_stability` | 82% | 64% | +19 (+8 to +29) | 45 |
+| Revolut · `complaint_unspecified` | 3% | 77% | −74 (−80 to −66) | 30 |
+
+**Null results.** No difference was detected in the other nine cells,
+including `feature_gap`, the largest label, at both apps (−4 and −8 points,
+intervals reaching 0), and every readable C24 label except `crash_stability`.
+Eight cells have fewer than 30 reviews and are not read: six at C24, among
+them `account_restricted`, `payments_transfers`, `kyc_onboarding` and
+`fees_pricing`, and two at Revolut, `performance` and `no_complaint`. N26 is
+null by design.
+
+What changed from C2:
+
+- Two C2 patterns do not survive the star adjustment. `support_experience` at
+  C24 was 13 points above the app's rate in C2; adjusted it is +10 with an
+  interval from −3 to +22. `account_restricted` at Revolut drops to +5 (−3 to
+  +11). Both are now "no difference detected", which is not the same as no
+  difference.
+- The LLM counts labels very differently from the baseline: `feature_gap` falls
+  from 609 to 395 reviews, `crash_stability` rises from 71 to 222 and
+  `fees_pricing` from 22 to 123. Part of the C2 volume picture was the
+  baseline's habit of putting unclear reviews into `feature_gap`.
+- Reply latency still differs far more between apps than between labels: the
+  median is about 3 days at C24, 4 hours at N26 and 23 minutes at Revolut,
+  while label medians within an app stay in the same range (roughly 2–4 days,
+  2–8 hours and 19–28 minutes).
+
+How far to trust each finding:
+
+- **C24 `crash_stability`** rests on a label the LLM over-predicts: on
+  validation it predicted 13 crash reviews where 6 were true. Some of the 45
+  reviews are probably not about crashes, so this finding is the weakest of the
+  five.
+- **Revolut `complaint_unspecified`** could not be validated at all: the
+  validation split holds a single example. Its reviews are also very short
+  (median 35 characters, against 188 for Revolut's 1–3★ reviews overall), and
+  short reviews at Revolut receive few replies whatever their label (see below).
+  The data cannot separate the label from the length.
+- **The three other Revolut findings** rest on labels with validation F1 of
+  0.78–1.00, though on 5–9 validation examples each.
+
+**Exploratory.** Two patterns turned up after the findings had been read. The
+rule does not cover them, they carry no intervals, and they are leads rather
+than findings. The tables are in the report.
+
+- **Review length, at Revolut only.** Reviews under 40 characters receive a
+  reply 32% of the time, against 74% expected from their star ratings; reviews
+  of 100 characters or more sit about 7 points above expected (83%). C24 and N26
+  show no such pattern. The Revolut findings above sit higher still (86–94%),
+  so length alone does not account for them, but it may account for part.
+- **Co-occurrence with `support_experience`.** Complaints about support travel
+  with some labels much more than others: 45% of `account_restricted` reviews
+  also complain about support, 31–34% of `kyc_onboarding`, `payments_transfers`
+  and `fees_pricing`, but only 12% of `feature_gap` and 8% of `performance`. At
+  Revolut, `account_restricted` reviews that also complain about support
+  received a reply 97% of the time (38 reviews), those that do not 72% (53).
+  `kyc_onboarding` sits at 93–94% either way, so its high rate does not depend
+  on a support complaint riding along.
+
+Limitations:
+
+- Labels are LLM predictions at 0.67 validation macro-F1, measured on 60
+  reviews, against a human ceiling of 0.69. Per-label accuracy is itself
+  uncertain.
+- The adjustment covers star rating only. Review length, timing, language
+  quality and anything else that goes with replying is not adjusted for.
+- Reply status is observed; the decision behind it is not. A label receiving
+  more replies says nothing about why, or about what the company does with the
+  complaint.
+- `performance` is predicted far too rarely (2 on validation where 11 were
+  true), so it cannot be judged here.
+- The rule tests 14 cells without correcting for multiple comparisons. As a
+  check outside the rule, Bonferroni-corrected intervals (99.6% instead of
+  95%) still exclude 0 for four of the five findings; Revolut `login_access`
+  (−2 to +22) is the one that no longer does.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.
-- **Database:** Postgres 16 in Docker Compose, on host port 5433.
-- **CI:** GitHub Actions runs `ruff` and `pytest` on every pull request and
-  push to `main`. Tests that need a live database are skipped there.
+- **Database:** Postgres 16 in Docker Compose, on host port 5433, holding the
+  scraped reviews and replies of the three apps.
+- **Gold set:** 300 hand-labelled reviews with a frozen train/validation/test
+  split, and a measured human self-agreement ceiling.
+- **Models:** the TF-IDF baseline, the LLM path with a hard budget and a local
+  answer cache, and the router between them.
+- **Evaluation:** one harness scores every model into
+  [reports/eval.md](reports/eval.md), with bootstrap intervals and paired
+  differences.
+- **CI:** GitHub Actions runs `ruff`, `pytest` (without the database tests) and
+  the eval gate on every pull request and push to `main`. The gate fails when a
+  committed result is stale, made from uncommitted code or below the
+  validation floor.
+- **Analysis:** the C2 first answer and the D1 final analysis, both generated
+  into `reports/`.
 - **API:** a FastAPI app with one `/health` endpoint, containerised and
   deployed on Render at
   [support-reply-gap.onrender.com/health](https://support-reply-gap.onrender.com/health).
-  It is a stub; the real `/classify` endpoint replaces it in Phase D.
+  It is a stub; the real `/classify` endpoint replaces it in D2.
 
 ## Running it locally
 
@@ -429,6 +553,11 @@ pytest
 
 # Score the baseline and rebuild reports/eval.md (needs the database)
 python -m support_reply_gap.eval --model baseline
+
+# Rebuild the final analysis (needs the database and an Anthropic API key;
+# --estimate prints the labelling cost first, cached answers cost nothing)
+python -m support_reply_gap.analysis.d1_report --estimate
+python -m support_reply_gap.analysis.d1_report
 
 # Run the API on http://localhost:8000/health
 docker build -t support-reply-gap .

@@ -198,8 +198,40 @@ two tiers.
 
 ## Phase D — Surface and findings
 
-- [ ] **D1. Final analysis.** Redo C2 with the best configuration. Sample sizes
+- [x] **D1. Final analysis.** Redo C2 with the best configuration. Sample sizes
       per cell at minimum. State null results plainly.
+      *Rules, fixed before the population is labelled:*
+      - **Model:** the LLM. "Best" means highest validation macro-F1: 0.67
+        against the router's 0.66, a gap within noise. Test scores do not
+        choose. The LLM was not trained on gold reviews, so C2's check
+        without the training reviews falls away.
+      - **Population:** 1–3★, as in C2, so the two stay comparable. The gold
+        set holds 21 5★ reviews, too few to know how accurate labels on 4–5★
+        are, and 4–5★ reviews receive replies at 13–21% against 70–84%.
+      - **Star adjustment:** for each label within an app, the expected reply
+        rate is the app's reply rate per star rating, weighted by the label's
+        own mix of 1★, 2★ and 3★. The comparison is observed minus expected,
+        so a label is not read as well-answered just for being mostly 1★.
+      - **What counts as a finding:** a cell with at least 30 reviews whose 95%
+        bootstrap interval of observed minus expected (1,000 resamples of the
+        app's reviews) excludes 0. Every other cell is reported as no
+        difference detected.
+      - **N26:** replies to 99% of 1–3★ reviews, so its reply rate cannot
+        separate labels. Stated as a null result; N26 is compared on latency
+        only.
+      - Per-label validation F1 of the LLM is shown next to each label, so a
+        weakly predicted label is read with that in mind.
+      *Outcome:* `reports/reply_gap_d1.md`; labelling cost $0.10. Five of 14
+      readable cells meet the rule: at Revolut `kyc_onboarding` (+18 points),
+      `support_experience` (+15), `login_access` (+11) and
+      `complaint_unspecified` (−74), at C24 `crash_stability` (+19), the last
+      on a label the LLM over-predicts. No difference detected in the other
+      nine, including `feature_gap` at both apps; C2's `support_experience`
+      at C24 and `account_restricted` at Revolut do not survive the star
+      adjustment. Found afterwards and reported as exploratory only: at
+      Revolut, reviews under 40 characters receive a reply far less often
+      than their stars predict, and `complaint_unspecified` is mostly such
+      reviews.
 
 - [ ] **D1b. Side analysis: ratings around the reply-policy changes.** N26
       started replying in 2025Q2, C24 in 2026Q1, Revolut's policy stayed the

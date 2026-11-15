@@ -233,7 +233,7 @@ two tiers.
       than their stars predict, and `complaint_unspecified` is mostly such
       reviews.
 
-- [ ] **D1b. Side analysis: ratings around the reply-policy changes.** N26
+- [x] **D1b. Side analysis: ratings around the reply-policy changes.** N26
       started replying in 2025Q2, C24 in 2026Q1, Revolut's policy stayed the
       same; Revolut is a reference series, not a control. Monthly mean score,
       share of 1★, review volume and reply rate per app, from 2024-11, with a
@@ -247,6 +247,38 @@ two tiers.
       detectable edits. N26's before-period is only 5 months; drop the
       incomplete last month.
       *Done:* one chart, a short README section after C2, a pointer from B1.
+      *Rules, fixed before any outcome series was drawn:*
+      - **Events, dated by the month replies were written** (`replied_at`),
+        read from reply counts only. N26 did not switch once: it wrote 0–10
+        replies a month up to 2024-11, 54 and 157 in 2024-12 and 2025-01,
+        0–3 in 2025-02 to 2025-04, and 103–250 a month from 2025-05. Events:
+        on 2024-12, paused 2025-02, on again 2025-05. C24 wrote 0–5 a month
+        (one spike of 19 in 2025-03) until 2026-01, then rose gradually:
+        one event, on 2026-01. Revolut: no event. The quarterly table in the
+        Data section averaged N26's burst away; the 2025Q2 date above is
+        superseded. N26 therefore has no clean "before": one quiet month,
+        then the burst.
+      - **Months:** 2024-11 to 2026-10, by the month a review is dated
+        (`posted_at`, which is the edit time for edited reviews). 2026-11 is
+        dropped: the scrape ended on the 3rd.
+      - **Series per app and month:** review count, mean score with a 95%
+        interval, share of 1★, reply rate. Each with and without reviews
+        flagged `likely_edited`.
+      - **Period table:** mean score and share of 1★ per app for each span
+        between events, with and without edited reviews, each next to
+        Revolut over the same months for reference.
+      - The edited share is never an outcome, and the text says edits are
+        only detectable on replied reviews.
+      - While checking the reply counts, a printout also showed some monthly
+        mean scores. Nothing above was chosen from them.
+      *Outcome:* `reports/policy_change.md`, $0. No step in ratings at any
+      event. C24's mean score fell from 4.4–4.6 to about 3.9 in autumn 2025,
+      before its first replies, and again to 2.7–2.9 from mid-2026 alongside
+      reply rates above 50%; the per-period 4.36 → 3.30 mostly reflects the
+      earlier trend. N26's span means overlap; its largest movement sits
+      between events. Revolut drifted from 4.6 to 4.2 with no change. Leaving
+      out edited reviews barely moves any series and, where it does, raises
+      the mean.
 
 - [ ] **D2. FastAPI service.** Replace the A4 stub: `/classify` over the router,
       reading from Postgres.

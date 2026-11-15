@@ -7,7 +7,8 @@ and how fast? This repo classifies Google Play reviews into complaint
 categories and joins them to reply data. The result is a descriptive table:
 reply rate and median reply latency per complaint type.
 
-**Status:** Phases A to C are done and the final analysis (D1) is in. Three
+**Status:** Phases A to C are done, and so are the final analysis (D1) and
+its side analysis (D1b). Three
 German neobanks were chosen by measured reply rate (see
 [App selection](#app-selection-stage-b1)), 300 reviews were hand-labelled into
 eleven labels (see [Gold set](#gold-set-stage-b5)), and three classifiers were
@@ -16,9 +17,11 @@ scored against them: a TF-IDF baseline, an LLM and a router between the two
 [Final analysis](#final-analysis-stage-d1): at Revolut, reviews about support,
 identity verification and login receive replies more often than their star
 ratings predict, and short subjectless complaints far less often; most other
-label differences are not detectable. Still open: a side analysis of ratings
-around the reply-policy changes (D1b), the `/classify` API (D2) and a final
-README pass (D3). The full plan is in [docs/build-order.md](docs/build-order.md).
+label differences are not detectable. A side analysis finds no step in ratings
+when N26 and C24 started replying (see
+[D1b](#ratings-around-the-reply-policy-changes-stage-d1b)). Still open: the
+`/classify` API (D2) and a final README pass (D3). The full plan is in
+[docs/build-order.md](docs/build-order.md).
 
 ## Approach
 
@@ -60,6 +63,10 @@ was rejected because only one of six apps (Lieferando) replies to most of its
 reviews. bunq and Vivid Money were excluded because they get fewer than 1.5
 reviews per day. That leaves **N26, Revolut and C24 Bank**.
 
+The probe sees each app's current policy. N26 and C24 both started replying
+during the two years collected; how their ratings moved around those changes is
+in [Ratings around the reply-policy changes](#ratings-around-the-reply-policy-changes-stage-d1b).
+
 **To revisit:** Revolut's median reply time is 0.4 hours, against 16–75 hours
 for the other neobanks, while it replies to only 12.5% of reviews overall. Which
 complaint types make up that fast-answered subset is a question for the
@@ -92,7 +99,12 @@ in 2026Q1. Before those points, a missing reply reflects the absence of a reply
 programme rather than anything about the review. Starting the window in 2026Q2
 means all three apps are actively replying throughout. That leaves 591 C24, 835
 N26 and 3,564 Revolut reviews. C24's reply rate still varies within the window
-(29.5% to 49.1%), so time is part of what any C24 figure reflects.
+(29.5% to 49.1%), so time is part of what any C24 figure reflects. Monthly
+reply counts later showed that N26's start was not a single switch: a burst of
+replies in December 2024 and January 2025, a pause, then steady replies from
+May 2025 (see
+[Ratings around the reply-policy changes](#ratings-around-the-reply-policy-changes-stage-d1b)).
+The analysis window is unaffected.
 
 **Edited reviews.** 512 reviews (2.4% of all reviews, 11.2% of replied ones)
 have a reply timestamped earlier than the review itself. The user edited the
@@ -252,6 +264,64 @@ N26, 23 minutes at Revolut) than between labels within an app.
 half of all 5★ reviews, which is implausible. The labels come from a model at
 0.49 validation macro-F1, so these numbers are a starting point, not the
 result. The result is in [Final analysis](#final-analysis-stage-d1).
+
+## Ratings around the reply-policy changes (stage D1b)
+
+A side question the data offered: two of the three apps started replying
+during the two years collected. Did their ratings move when they did? Monthly
+mean score, share of 1★, review volume and reply rate per app, all star
+ratings, 2024-11 to 2026-10. Tables are in
+[reports/policy_change.md](reports/policy_change.md).
+
+Descriptive only. The companies chose when to change, and app releases,
+pricing, the user base and the news changed alongside. Revolut, which did not
+change, is a reference series, not a control.
+
+The events were dated from reply counts alone, by the month replies were
+written, and fixed before any rating series was drawn. They turned out less
+tidy than the quarterly table in [Data](#data) suggested:
+
+- **N26** wrote 0–10 replies a month up to 2024-11, then 54 and 157 in
+  December and January, almost none from February to April 2025, and 100–250
+  a month from May 2025. Replies on, paused, on again; there is no clean
+  "before".
+- **C24** wrote almost none until January 2026, then its reply rate rose
+  gradually, to 54–59% by mid-2026.
+
+![Ratings around the reply-policy changes](reports/policy_change.png)
+
+**No step in ratings at any event.**
+
+- **C24's ratings were falling before it replied.** Its mean score sat at
+  4.4–4.6 until August 2025, dropped to about 3.9 in October, three months
+  before the first event, and held at 3.7–4.0 into spring 2026. A second drop,
+  to 2.7–2.9 from July 2026, coincides with reply rates above 50%. The data
+  cannot separate the two. The per-period table reads 4.36 before and 3.30
+  after, which on its own would suggest replying went with a fall of a full
+  star; the monthly series shows most of that fall was already under way.
+  The order of events cuts both ways: falling ratings could have prompted
+  C24 to start replying as easily as replying could have moved ratings. The
+  data records when replies began, not why.
+- **N26's span means** (3.21, 3.01, 3.19, 3.47) have overlapping intervals.
+  Its largest movement, to about 3.9 in October and November 2025, came with a
+  spike in review volume and sits between events, at a time when N26 was
+  already replying to everything.
+- **Revolut drifted from about 4.6 to about 4.2** over 2026 without any change
+  in reply policy, a reminder that ratings move for reasons this data does not
+  record.
+
+**Edited reviews.** Google Play keeps only a review's latest version, so a
+review edited after a reply carries the edit's date and score. 510 reviews are
+detectably edited, and every series was drawn with and without them. Edits are
+detectable only when a reply exists, so more replies mean more detectable edits;
+the edited share was never used as an outcome. Leaving them out barely moves
+any line. Where it does, it raises the mean: N26's last span goes from 3.47 to
+3.55, so the detectably edited reviews score lower than the rest, not higher.
+Edits without a reply stay invisible.
+
+The finding for D1b is a null: at this resolution, ratings show no step at
+any change in reply policy. C24 does show a large fall, but it started before
+C24 replied.
 
 ## Evaluation (stage C3)
 
@@ -526,8 +596,8 @@ Limitations:
   the eval gate on every pull request and push to `main`. The gate fails when a
   committed result is stale, made from uncommitted code or below the
   validation floor.
-- **Analysis:** the C2 first answer and the D1 final analysis, both generated
-  into `reports/`.
+- **Analysis:** the C2 first answer, the D1 final analysis and the D1b side
+  analysis, all generated into `reports/`.
 - **API:** a FastAPI app with one `/health` endpoint, containerised and
   deployed on Render at
   [support-reply-gap.onrender.com/health](https://support-reply-gap.onrender.com/health).
@@ -558,6 +628,9 @@ python -m support_reply_gap.eval --model baseline
 # --estimate prints the labelling cost first, cached answers cost nothing)
 python -m support_reply_gap.analysis.d1_report --estimate
 python -m support_reply_gap.analysis.d1_report
+
+# Rebuild the side analysis of ratings around the policy changes (needs the database)
+python -m support_reply_gap.analysis.policy_change_report
 
 # Run the API on http://localhost:8000/health
 docker build -t support-reply-gap .

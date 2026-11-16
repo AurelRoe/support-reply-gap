@@ -282,6 +282,22 @@ two tiers.
 
 - [ ] **D2. FastAPI service.** Replace the A4 stub: `/classify` over the router,
       reading from Postgres.
+      *Decisions:*
+      - **Text in the request, no database.** The deployed service has no
+        Postgres, and hosting one only to serve this would add a large piece
+        that improves neither the eval table nor the README.
+      - **The router as measured in C6.** Baseline trained on the 180 train
+        reviews, the same margin cut-off, the same LLM and prompt, so the
+        router row in `reports/eval.md` describes what the URL serves.
+      - **Trained baseline saved to a file and committed.** It holds the
+        TF-IDF vocabulary (single words and character fragments) and model
+        weights: no full review, no author, no labels. Training needs the
+        review text, which stays local; the service only loads the file.
+      - **LLM tier only with a key and a budget.** Without
+        `ANTHROPIC_API_KEY` the service answers from the baseline alone. With
+        it, a lifetime budget per running service (default $0.50) caps spend;
+        past it, the service falls back to the baseline and says so in the
+        response.
 
 - [ ] **D3. README.** Written continuously, not at the end. The question, the
       data and why these three apps, the taxonomy, the eval table, findings

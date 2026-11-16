@@ -10,7 +10,10 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "lingua-language-detector",
-    "scikit-learn",
+    # Pinned: the API loads a model pickled with this version (artifacts/), and a
+    # pickle is only guaranteed to load in the version that wrote it.
+    "scikit-learn==1.9.1",
+    "joblib",
     "nltk",
     "matplotlib",
     "anthropic",

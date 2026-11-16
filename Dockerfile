@@ -12,9 +12,15 @@ WORKDIR /app
 # editing src/ doesn't invalidate the (slow) dependency install.
 COPY pyproject.toml ./
 COPY src/ ./src/
+# The API loads the trained baseline and the LLM prompt from these two folders.
+COPY artifacts/ ./artifacts/
+COPY prompts/ ./prompts/
 
+# Editable install, as on the development machine: the code then runs from
+# /app/src, so paths it finds relative to its own location (artifacts/, prompts/)
+# point into /app. A normal install would move the code elsewhere and break them.
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .
+    pip install --no-cache-dir -e .
 
 # Run as a non-root user. A container breakout is far less useful to an attacker
 # if the process inside wasn't root.

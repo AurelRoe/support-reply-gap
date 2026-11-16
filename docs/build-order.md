@@ -280,7 +280,7 @@ two tiers.
       out edited reviews barely moves any series and, where it does, raises
       the mean.
 
-- [ ] **D2. FastAPI service.** Replace the A4 stub: `/classify` over the router,
+- [x] **D2. FastAPI service.** Replace the A4 stub: `/classify` over the router,
       reading from Postgres.
       *Decisions:*
       - **Text in the request, no database.** The deployed service has no
@@ -298,6 +298,16 @@ two tiers.
         it, a lifetime budget per running service (default $0.50) caps spend;
         past it, the service falls back to the baseline and says so in the
         response.
+      *Outcome:* live at support-reply-gap.onrender.com, version 0.3.0. The
+      bare URL redirects to the interactive docs. Every LLM failure (no key,
+      budget spent, API error, refusal) returns the baseline's labels with a
+      `fallback_reason`; tests cover each path with a fake LLM, so CI never
+      spends. A deploy-only problem was caught before going live: the image
+      lacked `artifacts/` and `prompts/`, and a normal install moved the code
+      away from them, so the image now installs in editable mode. The LLM
+      answer cache writes to a temporary folder, because the service's user
+      cannot write to the app folder. The $0.50 budget resets on every
+      restart, so the API account's monthly spend limit is the real cap.
 
 - [ ] **D3. README.** Written continuously, not at the end. The question, the
       data and why these three apps, the taxonomy, the eval table, findings

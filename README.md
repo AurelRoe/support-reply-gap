@@ -7,8 +7,9 @@ and how fast? This repo classifies Google Play reviews into complaint
 categories and joins them to reply data. The result is a descriptive table:
 reply rate and median reply latency per complaint type.
 
-**Status:** Phases A to C are done, and so are the final analysis (D1) and
-its side analysis (D1b). Three
+**Status:** Phases A to C are done, and so are the final analysis (D1), its
+side analysis (D1b) and the API (D2), live at
+[support-reply-gap.onrender.com](https://support-reply-gap.onrender.com). Three
 German neobanks were chosen by measured reply rate (see
 [App selection](#app-selection-stage-b1)), 300 reviews were hand-labelled into
 eleven labels (see [Gold set](#gold-set-stage-b5)), and three classifiers were
@@ -19,9 +20,8 @@ identity verification and login receive replies more often than their star
 ratings predict, and short subjectless complaints far less often; most other
 label differences are not detectable. A side analysis finds no step in ratings
 when N26 and C24 started replying (see
-[D1b](#ratings-around-the-reply-policy-changes-stage-d1b)). Still open: the
-`/classify` API (D2) and a final README pass (D3). The full plan is in
-[docs/build-order.md](docs/build-order.md).
+[D1b](#ratings-around-the-reply-policy-changes-stage-d1b)). Still open: a final
+README pass (D3). The full plan is in [docs/build-order.md](docs/build-order.md).
 
 ## Approach
 
@@ -580,6 +580,54 @@ Limitations:
   95%) still exclude 0 for four of the five findings; Revolut `login_access`
   (−2 to +22) is the one that no longer does.
 
+## API (stage D2)
+
+The C6 router as a web service, at
+[support-reply-gap.onrender.com](https://support-reply-gap.onrender.com). The
+bare URL opens an interactive page where a review can be typed in and
+classified. One endpoint does the work:
+
+```
+POST /classify
+{"text": "Seit drei Tagen kann ich mich nicht einloggen und der Support antwortet nicht."}
+
+→ {"labels": ["login_access", "support_experience"], "tier": "baseline",
+   "margin": 0.1638, "uncertain": false, "fallback_reason": null}
+```
+
+The baseline labels every review. When it is unsure, meaning its margin falls
+below the cut-off chosen in C6, the review goes to the LLM and `tier` says
+`llm`. The service is the router exactly as measured: the baseline trained on
+the same 180 reviews, the same cut-off, model and prompt. Its accuracy is the
+router row in [reports/eval.md](reports/eval.md), 0.66 validation and 0.58 test
+macro-F1, and these are predictions at that accuracy, not ground truth.
+
+Decisions, recorded in [docs/build-order.md](docs/build-order.md):
+
+- **No database.** The review text comes in the request. Hosting Postgres only
+  to serve the API would have added a large piece without improving the
+  analysis.
+- **The trained baseline is a committed file**
+  (`artifacts/router_baseline.joblib`, 0.9 MB). Training needs the gold set's
+  review text, which stays on my machine; the service only loads the file. It
+  holds the TF-IDF vocabulary (643 words that appear in at least two training
+  reviews, and short character fragments) and model weights: no full review,
+  no author, no labels. scikit-learn is pinned to the version that wrote it.
+- **The service always answers.** If the LLM is not configured, its budget is
+  spent or the call fails, the baseline's labels come back and
+  `fallback_reason` says why.
+
+Limits:
+
+- **Spending.** The LLM tier runs only with an API key, and stops once the
+  running service has spent $0.50. That counter resets whenever the service
+  restarts, which Render's free tier does after about 15 idle minutes, so the
+  actual cap is a monthly spend limit on the API account.
+- **No rate limit and no language check.** Anyone can call it, and English or
+  any other text gets German-trained labels.
+- **Cold start.** After an idle spell the first request takes up to a minute
+  while Render starts the service.
+
 ## What works now
 
 - **Package:** `support_reply_gap` installs with `pip install -e`.
@@ -598,10 +646,9 @@ Limitations:
   validation floor.
 - **Analysis:** the C2 first answer, the D1 final analysis and the D1b side
   analysis, all generated into `reports/`.
-- **API:** a FastAPI app with one `/health` endpoint, containerised and
-  deployed on Render at
-  [support-reply-gap.onrender.com/health](https://support-reply-gap.onrender.com/health).
-  It is a stub; the real `/classify` endpoint replaces it in D2.
+- **API:** a FastAPI service with `/classify` over the router, containerised
+  and deployed on Render at
+  [support-reply-gap.onrender.com](https://support-reply-gap.onrender.com).
 
 ## Running it locally
 
@@ -632,7 +679,14 @@ python -m support_reply_gap.analysis.d1_report
 # Rebuild the side analysis of ratings around the policy changes (needs the database)
 python -m support_reply_gap.analysis.policy_change_report
 
-# Run the API on http://localhost:8000/health
+# Retrain the API's baseline file in artifacts/ (needs the database)
+python -m support_reply_gap.models.artifact
+
+# Run the API on http://localhost:8000 (reloads on code changes; the LLM tier
+# is on when ANTHROPIC_API_KEY is set in .env)
+uvicorn support_reply_gap.api.main:app --reload
+
+# Or run it as the deployed container does, without the LLM tier
 docker build -t support-reply-gap .
 docker run -p 8000:8000 support-reply-gap
 ```
@@ -642,6 +696,8 @@ docker run -p 8000:8000 support-reply-gap
 ```
 src/support_reply_gap/   the package: ingest/, labeling/, eval/, analysis/, api/
 data/gold/               hand-labelled gold set: IDs, labels, split (committed)
+artifacts/               the trained baseline the API loads (committed)
+prompts/                 versioned LLM prompts
 tests/                   pytest; database tests marked @pytest.mark.db
 notebooks/               exploration only, never imported by src/
 scripts/                 standalone utilities

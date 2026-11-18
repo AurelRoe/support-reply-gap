@@ -309,9 +309,20 @@ two tiers.
       cannot write to the app folder. The $0.50 budget resets on every
       restart, so the API account's monthly spend limit is the real cap.
 
-- [ ] **D3. README.** Written continuously, not at the end. The question, the
+- [x] **D3. README.** Written continuously, not at the end. The question, the
       data and why these three apps, the taxonomy, the eval table, findings
       including nulls, limitations, how to run it.
+      *Outcome:* an editing pass, no new numbers. The README now opens with
+      the answer: the five D1 findings, the nulls, and the full eval table
+      with the human ceiling and paired differences, previously spread
+      across three sections. Limitations are collected in one section,
+      including trading and ads not being labels. Passages written before
+      later stages answered them were updated: Revolut's fast replies
+      (answered by D1's latency medians), the reply-programme question
+      (moved to open questions, since C2 did not come out thin) and C3's
+      forecast for the LLM gap. D1b moved after D1 so the model stages
+      read in order. "How to run it" gained the ingest step and a note
+      that a fresh scrape will not reproduce the scores exactly.
 
 The eval table and the honest findings are the deliverable. Everything else
 exists to make them credible.

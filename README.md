@@ -7,28 +7,70 @@ and how fast? This repo classifies Google Play reviews into complaint
 categories and joins them to reply data. The result is a descriptive table:
 reply rate and median reply latency per complaint type.
 
-**Status:** Phases A to C are done, and so are the final analysis (D1), its
-side analysis (D1b) and the API (D2), live at
-[support-reply-gap.onrender.com](https://support-reply-gap.onrender.com). Three
-German neobanks were chosen by measured reply rate (see
-[App selection](#app-selection-stage-b1)), 300 reviews were hand-labelled into
-eleven labels (see [Gold set](#gold-set-stage-b5)), and three classifiers were
-scored against them: a TF-IDF baseline, an LLM and a router between the two
-(see [eval table](reports/eval.md)). The LLM's labels give the final answer in
-[Final analysis](#final-analysis-stage-d1): at Revolut, reviews about support,
-identity verification and login receive replies more often than their star
-ratings predict, and short subjectless complaints far less often; most other
-label differences are not detectable. A side analysis finds no step in ratings
-when N26 and C24 started replying (see
-[D1b](#ratings-around-the-reply-policy-changes-stage-d1b)). Still open: a final
-README pass (D3). The full plan is in [docs/build-order.md](docs/build-order.md).
+**Status:** complete. All stages in [docs/build-order.md](docs/build-order.md)
+are done, and the classifier is live at
+[support-reply-gap.onrender.com](https://support-reply-gap.onrender.com).
+
+## Results in brief
+
+Three German neobanks (N26, Revolut, C24 Bank), 1,210 reviews rated 1–3★ from
+2026-04-01 to 2026-11-02, labelled by an LLM and compared within each app
+against the reply rate their star ratings predict. The rule for what counts as
+a finding was fixed before a single review in the population was labelled
+([details](#final-analysis-stage-d1)).
+
+| App · label | Replied | Expected from stars | Difference, points (95% CI) | Reviews |
+|---|---:|---:|---:|---:|
+| Revolut · `kyc_onboarding` | 94% | 76% | +18 (+13 to +23) | 132 |
+| Revolut · `support_experience` | 91% | 77% | +15 (+10 to +19) | 147 |
+| Revolut · `login_access` | 86% | 75% | +11 (+3 to +18) | 72 |
+| C24 · `crash_stability` | 82% | 64% | +19 (+8 to +29) | 45 |
+| Revolut · `complaint_unspecified` | 3% | 77% | −74 (−80 to −66) | 30 |
+
+- **Mostly null.** No difference was detected in 9 of the 14 cells large
+  enough to read, including `feature_gap`, the largest label, at both apps.
+  N26 replies to 99% of these reviews, so its reply rate cannot separate
+  labels at all.
+- **Two of the five are weak.** C24 `crash_stability` rests on a label the LLM
+  over-predicts, and Revolut `complaint_unspecified` cannot be separated from
+  review length: short reviews at Revolut receive few replies whatever their
+  label.
+- **Latency differs between apps, not labels:** median about 3 days at C24,
+  4 hours at N26 and 23 minutes at Revolut, with label medians inside each app
+  in the same range.
+- **Side analysis, also null:** ratings show no step at any point where N26 or
+  C24 changed its reply policy ([D1b](#ratings-around-the-reply-policy-changes-stage-d1b)).
+
+These are descriptive. Which reviews receive a reply is each company's choice,
+and that choice is unobserved.
+
+**Classifiers**, scored against 300 hand-labelled reviews
+([reports/eval.md](reports/eval.md) has per-label F1 and support):
+
+| | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k reviews | p95 latency |
+|---|---:|---:|---:|---:|
+| Human self-agreement (ceiling) | 0.69 | | | |
+| TF-IDF baseline | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | 11 ms |
+| LLM, Claude Haiku 5.5 | 0.67 (0.57–0.80) | 0.56 (0.45–0.67) | $0.09 | 2.4 s |
+| Router (baseline → LLM when unsure) | 0.66 (0.55–0.80) | 0.58 (0.46–0.71) | $0.07 | 2.4 s |
+| *LLM minus baseline, paired* | *+0.19 (+0.08 to +0.34)* | *+0.11 (+0.02 to +0.22)* | | |
+| *Router minus baseline, paired* | *+0.18 (+0.08 to +0.32)* | *+0.14 (+0.04 to +0.25)* | | |
+
+- The LLM beats the baseline on both splits; both paired intervals exclude 0.
+- On test it reaches about 80% of the human ceiling. Scores are read against
+  my own self-agreement of 0.69, not against 1.0.
+- The router is no worse than the LLM but barely worth its complexity: it
+  still sends 83% of reviews to the LLM, saving about $0.015 per 1,000 reviews
+  and no latency.
+
+The main limits are in [Limitations](#limitations).
 
 ## Approach
 
 1. Scrape Google Play reviews for three German apps from one product category
    (neobanks *or* brokers, not a mix, because complaint base rates differ).
-   The apps are chosen by measured reply rate, not picked up front.
-2. Hand-label ~300 reviews into a multi-label complaint taxonomy. This gold
+   The apps were chosen by measured reply rate, not picked up front.
+2. Hand-label 300 reviews into a multi-label complaint taxonomy. This gold
    set is the yardstick for every model.
 3. Compare two classifiers against it: a cheap TF-IDF + logistic regression
    baseline and an LLM with structured output. A confidence router sends
@@ -36,7 +78,7 @@ README pass (D3). The full plan is in [docs/build-order.md](docs/build-order.md)
 4. Join the predicted labels to reply data and report reply rate and latency
    per complaint type.
 
-Findings will be descriptive only. Companies choose which reviews to answer
+Findings are descriptive only. Companies choose which reviews to answer
 and that choice is not observed, so the data cannot show *why* a complaint
 type gets more or fewer replies.
 
@@ -67,10 +109,13 @@ The probe sees each app's current policy. N26 and C24 both started replying
 during the two years collected; how their ratings moved around those changes is
 in [Ratings around the reply-policy changes](#ratings-around-the-reply-policy-changes-stage-d1b).
 
-**To revisit:** Revolut's median reply time is 0.4 hours, against 16–75 hours
-for the other neobanks, while it replies to only 12.5% of reviews overall. Which
-complaint types make up that fast-answered subset is a question for the
-reply-gap analysis, not a finding yet.
+**Revolut's fast, selective replies.** Revolut's median reply time is 0.4
+hours, against 16–75 hours for the other neobanks, while it replies to only
+12.5% of reviews overall. The probe already shows where the low overall rate
+sits: 72.3% of 1–2★ reviews receive a reply, so the unanswered ones are mostly
+4–5★. Within 1–3★, the [final analysis](#final-analysis-stage-d1) found label
+medians of 19–28 minutes, so the fast replies are not concentrated in
+particular complaint types.
 
 ## Data
 
@@ -115,14 +160,6 @@ latency.
 **Text reviews only.** The Play Store review endpoint returns only reviews with
 text (none of the 21,197 are empty). Counts here are therefore not comparable
 to an app's total rating count on the store, which includes star-only ratings.
-
-**Observed, not analysed: reply programmes switching on.** The quarterly table
-contains a sharper question than the static comparison: *when an app starts
-replying, which complaint types are answered first?* C24's reply rate rises
-from 2.6% to 49.1% across four quarters, with the same app and the same
-complaint taxonomy before and after. This is outside the current scope and stays
-descriptive, like everything else here. It is the fallback if the main
-finding (stage C2) comes out thin.
 
 ## Taxonomy (stage B4)
 
@@ -265,64 +302,6 @@ half of all 5★ reviews, which is implausible. The labels come from a model at
 0.49 validation macro-F1, so these numbers are a starting point, not the
 result. The result is in [Final analysis](#final-analysis-stage-d1).
 
-## Ratings around the reply-policy changes (stage D1b)
-
-A side question the data offered: two of the three apps started replying
-during the two years collected. Did their ratings move when they did? Monthly
-mean score, share of 1★, review volume and reply rate per app, all star
-ratings, 2024-11 to 2026-10. Tables are in
-[reports/policy_change.md](reports/policy_change.md).
-
-Descriptive only. The companies chose when to change, and app releases,
-pricing, the user base and the news changed alongside. Revolut, which did not
-change, is a reference series, not a control.
-
-The events were dated from reply counts alone, by the month replies were
-written, and fixed before any rating series was drawn. They turned out less
-tidy than the quarterly table in [Data](#data) suggested:
-
-- **N26** wrote 0–10 replies a month up to 2024-11, then 54 and 157 in
-  December and January, almost none from February to April 2025, and 100–250
-  a month from May 2025. Replies on, paused, on again; there is no clean
-  "before".
-- **C24** wrote almost none until January 2026, then its reply rate rose
-  gradually, to 54–59% by mid-2026.
-
-![Ratings around the reply-policy changes](reports/policy_change.png)
-
-**No step in ratings at any event.**
-
-- **C24's ratings were falling before it replied.** Its mean score sat at
-  4.4–4.6 until August 2025, dropped to about 3.9 in October, three months
-  before the first event, and held at 3.7–4.0 into spring 2026. A second drop,
-  to 2.7–2.9 from July 2026, coincides with reply rates above 50%. The data
-  cannot separate the two. The per-period table reads 4.36 before and 3.30
-  after, which on its own would suggest replying went with a fall of a full
-  star; the monthly series shows most of that fall was already under way.
-  The order of events cuts both ways: falling ratings could have prompted
-  C24 to start replying as easily as replying could have moved ratings. The
-  data records when replies began, not why.
-- **N26's span means** (3.21, 3.01, 3.19, 3.47) have overlapping intervals.
-  Its largest movement, to about 3.9 in October and November 2025, came with a
-  spike in review volume and sits between events, at a time when N26 was
-  already replying to everything.
-- **Revolut drifted from about 4.6 to about 4.2** over 2026 without any change
-  in reply policy, a reminder that ratings move for reasons this data does not
-  record.
-
-**Edited reviews.** Google Play keeps only a review's latest version, so a
-review edited after a reply carries the edit's date and score. 510 reviews are
-detectably edited, and every series was drawn with and without them. Edits are
-detectable only when a reply exists, so more replies mean more detectable edits;
-the edited share was never used as an outcome. Leaving them out barely moves
-any line. Where it does, it raises the mean: N26's last span goes from 3.47 to
-3.55, so the detectably edited reviews score lower than the rest, not higher.
-Edits without a reply stay invisible.
-
-The finding for D1b is a null: at this resolution, ratings show no step at
-any change in reply policy. C24 does show a large fall, but it started before
-C24 replied.
-
 ## Evaluation (stage C3)
 
 Every model is scored by one harness against the frozen gold set, and the
@@ -363,13 +342,9 @@ it did.
   resample, so a rare label cannot drop out for one model and count as 0 for
   the other.
 
-| | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k | p95 latency |
-|---|---:|---:|---:|---:|
-| Human self-agreement | 0.69 | | | |
-| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | a few tens of ms |
-
-Latency is measured per review on a laptop and moves by several milliseconds
-between runs, so only its order of magnitude is meaningful.
+The full table is in [Results in brief](#results-in-brief). Latency is
+measured per review on a laptop and moves by several milliseconds between
+runs, so only its order of magnitude is meaningful.
 
 The single-model intervals are about 0.25 wide. Comparing two of them
 side by side would need a gap of around 25 points before they stop
@@ -377,9 +352,10 @@ overlapping. To see what pairing gains, the baseline was compared with three
 of its own variants (C = 1, C = 3, threshold 0.5). The paired interval on the
 difference came out 1.7 to 4.5 times narrower than comparing separate
 intervals. It is narrowest when the two models make similar errors (about
-±0.06 for C = 3) and wider when they differ (about ±0.10 for C = 1). The LLM
-will likely make different errors from TF-IDF, so a gap of roughly 10 points
-is what the table can resolve against the baseline, not 5.
+±0.06 for C = 3) and wider when they differ (about ±0.10 for C = 1). Since an
+LLM was likely to make different errors from TF-IDF, I expected the table to
+resolve a gap of roughly 10 points against the baseline, not 5. The LLM's
+test gap came out at 11 points, with an interval just clear of 0.
 
 On validation, 7 of the 11 true `performance` reviews are predicted as
 `feature_gap`, so the baseline mostly confuses "slow" with "missing", not with
@@ -405,8 +381,8 @@ whole development, smoke test included, cost about one cent.
 | | Val macro-F1 (95% CI) | Test macro-F1 (95% CI) | Cost / 1k | p95 latency |
 |---|---:|---:|---:|---:|
 | Human self-agreement | 0.69 | | | |
-| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | tens of ms |
-| LLM, Haiku 5.5 | 0.67 (0.57–0.80) | 0.56 (0.45–0.67) | $0.09 | about 2.5 s |
+| Baseline (C1) | 0.49 (0.34–0.63) | 0.45 (0.34–0.59) | $0.00 | 11 ms |
+| LLM, Haiku 5.5 | 0.67 (0.57–0.80) | 0.56 (0.45–0.67) | $0.09 | 2.4 s |
 | **LLM minus baseline, paired** | **+0.19 (+0.08 to +0.34)** | **+0.11 (+0.02 to +0.22)** | | |
 
 - The LLM is better than the baseline on both splits; both paired intervals
@@ -422,7 +398,7 @@ whole development, smoke test included, cost about one cent.
   models.
 - `complaint_unspecified` scores 0 on both splits, with one review each: not
   interpretable.
-- The cost is speed and money: about 2.5 s per review instead of tens of
+- The cost is speed and money: about 2.4 s per review instead of about 10
   milliseconds, and $0.09 per 1,000 reviews instead of nothing. That trade-off
   is what the router (C6) is for.
 
@@ -580,6 +556,64 @@ Limitations:
   95%) still exclude 0 for four of the five findings; Revolut `login_access`
   (−2 to +22) is the one that no longer does.
 
+## Ratings around the reply-policy changes (stage D1b)
+
+A side question the data offered: two of the three apps started replying
+during the two years collected. Did their ratings move when they did? Monthly
+mean score, share of 1★, review volume and reply rate per app, all star
+ratings, 2024-11 to 2026-10. Tables are in
+[reports/policy_change.md](reports/policy_change.md).
+
+Descriptive only. The companies chose when to change, and app releases,
+pricing, the user base and the news changed alongside. Revolut, which did not
+change, is a reference series, not a control.
+
+The events were dated from reply counts alone, by the month replies were
+written, and fixed before any rating series was drawn. They turned out less
+tidy than the quarterly table in [Data](#data) suggested:
+
+- **N26** wrote 0–10 replies a month up to 2024-11, then 54 and 157 in
+  December and January, almost none from February to April 2025, and 100–250
+  a month from May 2025. Replies on, paused, on again; there is no clean
+  "before".
+- **C24** wrote almost none until January 2026, then its reply rate rose
+  gradually, to 54–59% by mid-2026.
+
+![Ratings around the reply-policy changes](reports/policy_change.png)
+
+**No step in ratings at any event.**
+
+- **C24's ratings were falling before it replied.** Its mean score sat at
+  4.4–4.6 until August 2025, dropped to about 3.9 in October, three months
+  before the first event, and held at 3.7–4.0 into spring 2026. A second drop,
+  to 2.7–2.9 from July 2026, coincides with reply rates above 50%. The data
+  cannot separate the two. The per-period table reads 4.36 before and 3.30
+  after, which on its own would suggest replying went with a fall of a full
+  star; the monthly series shows most of that fall was already under way.
+  The order of events cuts both ways: falling ratings could have prompted
+  C24 to start replying as easily as replying could have moved ratings. The
+  data records when replies began, not why.
+- **N26's span means** (3.21, 3.01, 3.19, 3.47) have overlapping intervals.
+  Its largest movement, to about 3.9 in October and November 2025, came with a
+  spike in review volume and sits between events, at a time when N26 was
+  already replying to everything.
+- **Revolut drifted from about 4.6 to about 4.2** over 2026 without any change
+  in reply policy, a reminder that ratings move for reasons this data does not
+  record.
+
+**Edited reviews.** Google Play keeps only a review's latest version, so a
+review edited after a reply carries the edit's date and score. 510 reviews are
+detectably edited, and every series was drawn with and without them. Edits are
+detectable only when a reply exists, so more replies mean more detectable edits;
+the edited share was never used as an outcome. Leaving them out barely moves
+any line. Where it does, it raises the mean: N26's last span goes from 3.47 to
+3.55, so the detectably edited reviews score lower than the rest, not higher.
+Edits without a reply stay invisible.
+
+The finding for D1b is a null: at this resolution, ratings show no step at
+any change in reply policy. C24 does show a large fall, but it started before
+C24 replied.
+
 ## API (stage D2)
 
 The C6 router as a web service, at
@@ -628,27 +662,49 @@ Limits:
 - **Cold start.** After an idle spell the first request takes up to a minute
   while Render starts the service.
 
-## What works now
+## Limitations
 
-- **Package:** `support_reply_gap` installs with `pip install -e`.
-- **Database:** Postgres 16 in Docker Compose, on host port 5433, holding the
-  scraped reviews and replies of the three apps.
-- **Gold set:** 300 hand-labelled reviews with a frozen train/validation/test
-  split, and a measured human self-agreement ceiling.
-- **Models:** the TF-IDF baseline, the LLM path with a hard budget and a local
-  answer cache, and the router between them.
-- **Evaluation:** one harness scores every model into
-  [reports/eval.md](reports/eval.md), with bootstrap intervals and paired
-  differences.
-- **CI:** GitHub Actions runs `ruff`, `pytest` (without the database tests) and
-  the eval gate on every pull request and push to `main`. The gate fails when a
-  committed result is stale, made from uncommitted code or below the
-  validation floor.
-- **Analysis:** the C2 first answer, the D1 final analysis and the D1b side
-  analysis, all generated into `reports/`.
-- **API:** a FastAPI service with `/classify` over the router, containerised
-  and deployed on Render at
-  [support-reply-gap.onrender.com](https://support-reply-gap.onrender.com).
+The detail sits in each stage's section; this is the summary.
+
+- **Descriptive only.** Reply status is observed, the decision behind it is
+  not. A label that receives more replies says nothing about why, or about
+  what the company does with the complaint.
+- **Labels are predictions.** The analysis runs on LLM labels at 0.67
+  validation and 0.56 test macro-F1, against a human ceiling of 0.69. The gold
+  set is 300 reviews labelled by one person, with 60 reviews per evaluation
+  split, so every score carries an interval about 0.25 wide.
+- **Some labels cannot be judged.** `complaint_unspecified` and `fees_pricing`
+  have fewer than 20 gold examples and one test review each. `performance` is
+  predicted far too rarely to read, and its boundary with `crash_stability`
+  is the least stable in my own labelling (self-agreement F1 0.25). Small
+  classes were flagged, not merged.
+- **`feature_gap` is broad.** It is the largest label and covers missing
+  features, UI complaints and in-app ads, so a finding about it would be
+  vague. None was detected.
+- **No separate labels for trading/crypto or ads.** Both were too rare in the
+  development sample, and trading only came up at Revolut. Trading complaints
+  fold into `payments_transfers` or `feature_gap`, ads into `feature_gap`.
+- **Star rating is the only adjustment.** Review length is a known
+  uncontrolled factor at Revolut, and timing, language quality and anything
+  else that goes with replying are not adjusted for either.
+- **Multiple comparisons.** 14 cells were tested at 95% without correction.
+  With a Bonferroni correction, four of the five findings hold; Revolut
+  `login_access` does not.
+- **Google Play keeps only a review's latest version**, and its review
+  endpoint returns only reviews with text. Edits after a reply re-date and
+  re-score a review, and edits without a reply are invisible.
+- **Narrow scope.** Three neobanks, seven months of 1–3★ reviews. Nothing here
+  generalises to other apps, categories or periods.
+
+Not explored, and open for later:
+
+- **Reply programmes switching on.** C24's reply rate rose from 2.6% to 49.1%
+  over four quarters with the same taxonomy before and after. *Which complaint
+  types were answered first?* would be a sharper question than the static
+  comparison.
+- **A fine-tuned German transformer** (`deepset/gbert-base`) as a fourth row
+  in the eval table. The harness already exists, so it would slot in without
+  changing anything else.
 
 ## Running it locally
 
@@ -664,6 +720,10 @@ python -m nltk.downloader stopwords
 # Start Postgres (fill in .env first)
 cp .env.example .env
 docker compose up -d
+
+# Scrape the last two years of reviews into Postgres and run the data quality
+# checks (safe to re-run: rows are upserted on review id)
+python -m support_reply_gap.ingest
 
 # Run all tests, including the database ones
 pytest
@@ -691,10 +751,16 @@ docker build -t support-reply-gap .
 docker run -p 8000:8000 support-reply-gap
 ```
 
+The gold set commits review IDs only, and the eval reads each review's text
+from the database by ID. A fresh scrape covers a later two-year window, and
+Google Play drops or rewrites reviews over time, so from a new clone some gold
+reviews may be missing or changed and scores will not reproduce exactly. The
+committed result files in [reports/eval/](reports/eval/) are what CI checks.
+
 ## Repo layout
 
 ```
-src/support_reply_gap/   the package: ingest/, labeling/, eval/, analysis/, api/
+src/support_reply_gap/   the package: ingest/, labeling/, models/, eval/, analysis/, api/
 data/gold/               hand-labelled gold set: IDs, labels, split (committed)
 artifacts/               the trained baseline the API loads (committed)
 prompts/                 versioned LLM prompts
